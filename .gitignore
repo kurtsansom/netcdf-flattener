@@ -1,0 +1,4 @@
+# Pip packaging files
+build
+dist
+netcdf_flattener.egg-info
