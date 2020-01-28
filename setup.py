@@ -13,8 +13,8 @@ setuptools.setup(
      long_description=long_description,
      long_description_content_type="text/markdown",
      url="https://gitlab.eumetsat.int/additional-data-services/netcdf-flattener",
-     package_dir={'': 'src'},
-     packages=setuptools.find_packages('src'),
+     package_dir={'': 'netcdf_flattener'},
+     packages=setuptools.find_packages('netcdf_flattener'),
      classifiers=[
          "Programming Language :: Python :: 3",
          "License :: OSI Approved :: Apache Software License",

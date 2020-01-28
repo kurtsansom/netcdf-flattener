@@ -1,0 +1,6 @@
+netcdf output1 {
+
+// global attributes:
+                :title = "CDL-based input test" ;
+                :_NCProperties = "version=2,netcdf=4.6.3,hdf5=1.10.4" ;
+}
