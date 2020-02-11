@@ -54,7 +54,7 @@ class BaseTest(TestCase):
 
         # Run flattening script
         print("Flatten '{}' in new file '{}'".format(input_nc, output_nc))
-        flatten(input_nc, output_nc)  # TODO: add outputfilename
+        flatten(input_nc, output_nc)
 
         # Dump flattened NetCDF and compare to reference
         print("Read content of flattened netcdf file '{}' in CDL (ncdump)".format(output_nc))
@@ -71,5 +71,13 @@ class BaseTest(TestCase):
         os.remove(input_nc)
         os.remove(output_nc)
 
-        # Test result
-        assert str1 == str2
+        # Test
+        test_result = str1 == str2
+
+        if ~test_result:
+            print("Strings don't match!\n\nReference:\n")
+            print(str2)
+            print("\n\nGenerated:\n")
+            print(str1)
+
+        assert test_result
