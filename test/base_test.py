@@ -1,3 +1,7 @@
+# Project: NetCDF Flattener
+# Copyright (c) 2020 EUMETSAT
+# License: Proprietary
+
 """Base test module to inherit from actual tests.
 """
 import os
