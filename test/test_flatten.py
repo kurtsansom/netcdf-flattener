@@ -3,7 +3,9 @@ from test.base_test import BaseTest
 
 class Test(BaseTest):
     def test_flatten(self):
-        """Flatten input file 'input1.cdl' and compare to reference 'reference1.cdl'.
+        """Global test of most functionalities.
+
+        Flatten input file 'input1.cdl' and compare to reference 'reference1.cdl'.
         """
         # Inputs
         input_name = "input1.cdl"

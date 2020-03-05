@@ -3,7 +3,6 @@
 import os
 import re
 import subprocess
-from datetime import datetime
 from pathlib import Path
 from unittest import TestCase
 
@@ -13,13 +12,13 @@ from netcdf_flattener import flatten
 def make_string_comparable(text):
     """Clean CDl formatting to allow diff
 
-    Implemented operations:
-        Replace repeated spaces or tabs by a single space
-
     :param text: test to clean
     :return: cleaned text
     """
+    text = re.sub('\n[\t ]+', '\n', text)
     text = re.sub('[\t ]+', ' ', text)
+    text = re.sub('\n]+', '\n', text)
+    text = re.sub(r':_NCProperties = "[\w+.=,]*" *;\n', '', text)
     return text
 
 
@@ -74,10 +73,12 @@ class BaseTest(TestCase):
         # Test
         test_result = str1 == str2
 
-        if ~test_result:
+        if not test_result:
             print("Strings don't match!\n\nReference:\n")
             print(str2)
             print("\n\nGenerated:\n")
             print(str1)
+        else:
+            print("Strings match")
 
         assert test_result
