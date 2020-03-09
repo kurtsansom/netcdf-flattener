@@ -51,6 +51,8 @@ group: e3sm {
     		tas:standard_name = "air_temperature" ;
     		tas:units = "kelvin" ;
     		tas:coordinates = "time lat lon" ;
+    		tas:cell_methods="time: mean" ;
+    		tas:cell_measures = "area: time" ;
 
     // group attributes:
     		:Realization = "1" ;
@@ -74,6 +76,8 @@ group: e3sm {
     		tas:long_name = "surface air temperature" ;
     		tas:standard_name = "air_temperature" ;
     		tas:coordinates = "/e3sm/time /e3sm/lat /e3sm/lon" ;
+    		tas:cell_methods="/e3sm/time: mean /e3sm/lat: sum" ;
+    		tas:cell_measures = "area: /e3sm/time volume: /e3sm/lat" ;
 
     // group attributes:
     		:Realization = "2" ;
@@ -96,6 +100,8 @@ group: e3sm {
     		tas:long_name = "surface air temperature" ;
     		tas:standard_name = "air_temperature" ;
     		tas:coordinates = "../time ../lat ../lon" ;
+    		tas:cell_methods="../time: mean" ;
+    		tas:cell_measures = "area: ../time" ;
 
     // group attributes:
     		:Realization = "3" ;
