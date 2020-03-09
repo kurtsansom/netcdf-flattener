@@ -53,9 +53,17 @@ class Flattener:
                                             "part_node_count": 0,
                                             }
 
-        self.__references_attributes_regex = {0: re.compile("(\S*)"),
-                                              1: re.compile("(\S*):"),
-                                              2: re.compile(": (\S*)")}
+        self.__references_attributes_regex = {
+            0: re.compile(r"(?P<var>\S+)"),
+            1: re.compile(r"(?P<var>\S+): (?P<other>\S+)"),
+            2: re.compile(r"(?P<other>\S+): (?P<var>\S+)")
+        }
+
+        self.__references_attributes_replace = {
+            0: "{var}{other}",
+            1: "{var}: {other}",
+            2: "{other}: {var}"
+        }
 
         self.__attr_map_name = "flattener_name_mapping_attributes"
         self.__dim_map_name = "flattener_name_mapping_dimensions"
@@ -242,6 +250,18 @@ class Flattener:
                     break
             return found_var
 
+    def __escape_index_error(self, match, group_name):
+        """Return the group in a match if it exists, an empty string otherwise.
+
+        :param match: regex match
+        :param group_name: group name
+        :return: match group
+        """
+        try:
+            return match.group(group_name)
+        except IndexError:
+            return ""
+
     def resolve_references(self, var, old_var):
         """In a given variable, replace all references to other variables in its attributes by absolute references.
 
@@ -251,8 +271,11 @@ class Flattener:
         for attr_name, attr_format in self.__var_references_attributes.items():
             if attr_name in var.__dict__:
                 regex_format = self.__references_attributes_regex[attr_format]
+                replace_format = self.__references_attributes_replace[attr_format]
                 attr_value = var.getncattr(attr_name)
-                new_attr_value = regex_format.sub(lambda x: self.resolve_coordinate(x.group(), old_var), attr_value)
+                new_attr_value = regex_format.sub(lambda x: replace_format.format(
+                    var=self.resolve_coordinate(x.group("var"), old_var),
+                    other=self.__escape_index_error(x, "other")), attr_value)
                 var.setncattr(attr_name, new_attr_value)
 
     def adapt_coordinates_names(self, var):
@@ -264,8 +287,11 @@ class Flattener:
         for attr_name, attr_format in self.__var_references_attributes.items():
             if attr_name in var.__dict__:
                 regex_format = self.__references_attributes_regex[attr_format]
+                replace_format = self.__references_attributes_replace[attr_format]
                 attr_value = var.getncattr(attr_name)
-                new_attr_value = regex_format.sub(lambda x: self.__var_map[x.group()], attr_value)
+                new_attr_value = regex_format.sub(lambda x: replace_format.format(
+                    var=self.__var_map[x.group("var")],
+                    other=self.__escape_index_error(x, "other")), attr_value)
                 var.setncattr(attr_name, new_attr_value)
                 print("   attribute '{}'  in variable '{}': references '{}' renamed as '{}'"
                       .format(attr_name, var.name, attr_value, new_attr_value))
