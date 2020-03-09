@@ -4,6 +4,7 @@
 
 import hashlib
 import os
+import re
 
 from netCDF4 import Dataset
 
@@ -29,6 +30,32 @@ class Flattener:
         self.__new_separator = '#'
         self.__pathname_format = "{}/{}"
         self.__mapping_str_format = "{}: {}"
+
+        # attributes in which to look for references to variables, and the format of these references:
+        # - 0: String attributes whose value is a blank separated list of variable names: "var1 var2
+        # - 1: String attributes comprising a list of blank-separated pairs of words of the form
+        #      "var1: foo var2: bar"
+        # - 2: String attributes comprising a list of blank-separated pairs of words of the form
+        #      "foo: var1 bar: var2"
+        self.__var_references_attributes = {"ancillary_variables": 0,
+                                            "bounds": 0,
+                                            "cell_measures": 2,
+                                            "cell_methods": 1,
+                                            "climatology ": 0,
+                                            "coordinates": 0,
+                                            "formula_terms": 2,
+                                            "geometry": 0,
+                                            "grid_mapping": 0,
+                                            "interior_ring": 0,
+                                            "node_coordinates": 0,
+                                            "node_count": 0,
+                                            "nodes": 0,
+                                            "part_node_count": 0,
+                                            }
+
+        self.__references_attributes_regex = {0: re.compile("(\S*)"),
+                                              1: re.compile("(\S*):"),
+                                              2: re.compile(": (\S*)")}
 
         self.__attr_map_name = "flattener_name_mapping_attributes"
         self.__dim_map_name = "flattener_name_mapping_dimensions"
@@ -151,7 +178,7 @@ class Flattener:
         self.__var_map_value.append(self.generate_mapping_str(var.group(), var.name, new_name))
 
         # Resolve coordinates and replace by absolute path
-        self.resolve_coordinates(new_var, var)
+        self.resolve_references(new_var, var)
 
     def resolve_coordinate(self, orig_coord, orig_var):
         """Resolve the absolute path to a coordinate variable within the group structure.
@@ -215,32 +242,33 @@ class Flattener:
                     break
             return found_var
 
-    def resolve_coordinates(self, var, old_var):
-        """In a given variable, replace all references to coordinates by absolute references.
+    def resolve_references(self, var, old_var):
+        """In a given variable, replace all references to other variables in its attributes by absolute references.
 
-        :param var: flattened variable in which coordinates should be renamed with absolute references
+        :param var: flattened variable in which references should be renamed with absolute references
         :param old_var: original variable (in group structure)
         """
-        if "coordinates" in var.__dict__:
-            coord_list = var.coordinates.split()
-
-            abs_coord_list = [self.resolve_coordinate(x, old_var) for x in coord_list]
-
-            var.coordinates = ' '.join(abs_coord_list)
+        for attr_name, attr_format in self.__var_references_attributes.items():
+            if attr_name in var.__dict__:
+                regex_format = self.__references_attributes_regex[attr_format]
+                attr_value = var.getncattr(attr_name)
+                new_attr_value = regex_format.sub(lambda x: self.resolve_coordinate(x.group(), old_var), attr_value)
+                var.setncattr(attr_name, new_attr_value)
 
     def adapt_coordinates_names(self, var):
-        """In a given variable, replace all references to coordinates by references to the new names in the flattened
-        NetCDF. All references have to be absolute references to be found.
+        """In a given variable, replace all references to variables in attributes by references to the new names in the
+        flattened NetCDF. All references have to be already resolved as absolute references.
 
-        :param var: flattened variable in which coordinates should be renamed with new names
+        :param var: flattened variable in which references should be renamed with new names
         """
-        if "coordinates" in var.__dict__:
-            coord_list = var.coordinates.split()
-
-            new_coord_list = [self.__var_map[x] for x in coord_list]
-
-            print("   variable {}: {} renamed as {}".format(var.name, coord_list, new_coord_list))
-            var.coordinates = ' '.join(new_coord_list)
+        for attr_name, attr_format in self.__var_references_attributes.items():
+            if attr_name in var.__dict__:
+                regex_format = self.__references_attributes_regex[attr_format]
+                attr_value = var.getncattr(attr_name)
+                new_attr_value = regex_format.sub(lambda x: self.__var_map[x.group()], attr_value)
+                var.setncattr(attr_name, new_attr_value)
+                print("   attribute '{}'  in variable '{}': references '{}' renamed as '{}'"
+                      .format(attr_name, var.name, attr_value, new_attr_value))
 
     def pathname(self, group, name):
         """Compose full path name to an element in a group structure: /path/to/group/elt
