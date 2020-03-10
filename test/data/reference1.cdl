@@ -32,6 +32,7 @@ variables:
 		e3sm\#e3sm_01\#tas:coordinates = "e3sm#time e3sm#lat e3sm#lon" ;
 		e3sm\#e3sm_01\#tas:cell_methods = "e3sm#time: mean" ;
 		e3sm\#e3sm_01\#tas:cell_measures = "area: e3sm#time" ;
+		e3sm\#e3sm_01\#tas:sample_dimension = "e3sm#time" ;
 	float e3sm\#e3sm_02\#tas(e3sm\#time, e3sm\#lat, e3sm\#lon) ;
 		e3sm\#e3sm_02\#tas:long_name = "surface air temperature" ;
 		e3sm\#e3sm_02\#tas:standard_name = "air_temperature" ;

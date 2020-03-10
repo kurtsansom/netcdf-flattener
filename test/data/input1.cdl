@@ -53,6 +53,7 @@ group: e3sm {
     		tas:coordinates = "time lat lon" ;
     		tas:cell_methods="time: mean" ;
     		tas:cell_measures = "area: time" ;
+    		tas:sample_dimension = "time" ;
 
     // group attributes:
     		:Realization = "1" ;
