@@ -37,21 +37,29 @@ class Flattener:
         #      "var1: foo var2: bar"
         # - 2: String attributes comprising a list of blank-separated pairs of words of the form
         #      "foo: var1 bar: var2"
-        self.__var_references_attributes = {"ancillary_variables": 0,
-                                            "bounds": 0,
-                                            "cell_measures": 2,
-                                            "cell_methods": 1,
-                                            "climatology ": 0,
-                                            "coordinates": 0,
-                                            "formula_terms": 2,
-                                            "geometry": 0,
-                                            "grid_mapping": 0,
-                                            "interior_ring": 0,
-                                            "node_coordinates": 0,
-                                            "node_count": 0,
-                                            "nodes": 0,
-                                            "part_node_count": 0,
-                                            }
+        self.__var_references_attributes = {
+            "ancillary_variables": 0,
+            "bounds": 0,
+            "cell_measures": 2,
+            "cell_methods": 1,
+            "climatology ": 0,
+            "coordinates": 0,
+            "formula_terms": 2,
+            "geometry": 0,
+            "grid_mapping": 0,
+            "interior_ring": 0,
+            "node_coordinates": 0,
+            "node_count": 0,
+            "nodes": 0,
+            "part_node_count": 0,
+        }
+
+        # attributes in which to look for references to dimensions, and the format of these references
+        self.__dim_references_attributes = {
+            "compress": 0,
+            "instance_dimension": 0,
+            "sample_dimension": 0
+        }
 
         self.__references_attributes_regex = {
             0: re.compile(r"(?P<var>\S+)"),
@@ -95,10 +103,16 @@ class Flattener:
             self.__output_file.setncattr(self.__dim_map_name, self.__dim_map_value)
             self.__output_file.setncattr(self.__var_map_name, self.__var_map_value)
 
-            # Browse flattened variables to rename references
-            print("Browsing flattened variables to rename references in 'coordinates' attribute:")
+            # Browse flattened variables to rename references:
+            # - dimensions
+            print("Browsing flattened variables to rename dimension references in attributes:")
             for var in self.__output_file.variables.values():
-                self.adapt_coordinates_names(var)
+                self.adapt_coordinates_names(var, search_dim=True)
+
+            # - variables
+            print("Browsing flattened variables to rename variable references in attributes:")
+            for var in self.__output_file.variables.values():
+                self.adapt_coordinates_names(var, search_dim=False)
 
     def process_group(self, input_group):
         """Flattens a given group to the output file.
@@ -185,70 +199,88 @@ class Flattener:
         # Add to name mapping attribute
         self.__var_map_value.append(self.generate_mapping_str(var.group(), var.name, new_name))
 
-        # Resolve coordinates and replace by absolute path
-        self.resolve_references(new_var, var)
+        # Resolve coordinates and replace by absolute path:
+        # - references to dimensions
+        self.resolve_references(new_var, var, search_dim=True)
+        # - references to variables
+        self.resolve_references(new_var, var, search_dim=False)
 
-    def resolve_coordinate(self, orig_coord, orig_var):
+    def resolve_coordinate(self, orig_ref, orig_var, search_dim=False):
         """Resolve the absolute path to a coordinate variable within the group structure.
 
-        :param orig_coord: coordinate to resolve
-        :param orig_var: variable originally containing the coordinate reference
-        :return: absolute path to the coordinate
+        :param orig_ref: reference to resolve
+        :param orig_var: variable originally containing the reference
+        :param search_dim: if true, search references to dimensions, if false, search references to variables
+        :return: absolute path to the reference
         """
-        coord = orig_coord
+        ref = orig_ref
 
-        # Coordinate is already given by absolute path
-        if coord.startswith(self.__default_separator):
+        # Reference is already given by absolute path
+        if ref.startswith(self.__default_separator):
             method = "absolute"
-            absolute_coord = coord
+            absolute_ref = ref
 
-        # Coordinate is given by relative path
-        elif self.__default_separator in coord:
+        # Reference is given by relative path
+        elif self.__default_separator in ref:
             method = " relative"
             parent_group = orig_var.group()
-            while coord.startswith("../"):
-                coord = coord[3:]
+
+            # Go up parent groups
+            while ref.startswith("../"):
+                ref = ref[3:]
                 parent_group = parent_group.parent
 
             # TODO: handle exception if parent_group or var does not exist
-            var = parent_group[coord]
-            absolute_coord = self.__pathname_format.format(var.group().path, var.name)
 
-        # Coordinate is to be searched by proximity
+            # Go down child groups
+            ref_split = ref.split(self.__default_separator)
+            for g in ref_split[:-1]:
+                parent_group = parent_group.groups[g]
+
+            # Get variable or dimension
+            elt = parent_group.dimensions[ref_split[-1]] if search_dim else parent_group.variables[ref_split[-1]]
+
+            # Get absolute reference
+            absolute_ref = self.__pathname_format.format(elt.group().path, elt.name)
+
+        # Reference is to be searched by proximity
         else:
             method = " proximity"
-            resolved_var = self.search_by_proximity(coord, orig_var.group(), False)
-            absolute_coord = self.__pathname_format.format(resolved_var.group().path, resolved_var.name)
+            resolved_var = self.search_by_proximity(ref, orig_var.group(), local_apex_reached=False, search_dim=False)
+            absolute_ref = self.__pathname_format.format(resolved_var.group().path, resolved_var.name)
 
-        print("      {} coordinate reference to '{}' resolved as '{}'".format(method, orig_coord, absolute_coord))
-        return absolute_coord
+        print("      {} coordinate reference to '{}' resolved as '{}'".format(method, orig_ref, absolute_ref))
+        return absolute_ref
 
-    def search_by_proximity(self, coord, current_group, local_apex_reached=False):
-        """Resolve the absolute path to a coordinate variable within the group structure, using search by proximity.
+    def search_by_proximity(self, ref, current_group, local_apex_reached=False, search_dim=False):
+        """Resolve the absolute path to a reference within the group structure, using search by proximity.
 
         First search up in the hierarchy for the coordinate, until local apex is reached. Then search down in siblings.
 
-        :param coord: coordinate to resolve
+        :param ref: reference to resolve
         :param current_group: current group where searching
         :param local_apex_reached: False initially, until apex is reached.
+        :param search_dim: if true, search references to dimensions, if false, search references to variables
         :return: absolute path to the coordinate
         """
+        dims_or_vars = current_group.dimensions if search_dim else current_group.variables
+
         # Found in current group
-        if coord in current_group.variables.keys():
-            return current_group.variables[coord]
+        if ref in dims_or_vars.keys():
+            return dims_or_vars[ref]
 
         # If local apex not reached, search in parent group
-        elif not local_apex_reached and coord not in current_group.dimensions.keys():
-            return self.search_by_proximity(coord, current_group.parent, False)
+        elif not local_apex_reached and ref not in current_group.dimensions.keys():
+            return self.search_by_proximity(ref, current_group.parent, False, search_dim)
 
         # If local apex reached, search down in siblings
         else:
-            found_var = None
+            found_elt = None
             for child_group in current_group.groups.values():
-                found_var = self.search_by_proximity(coord, child_group, True)
-                if found_var is not None:
+                found_elt = self.search_by_proximity(ref, child_group, True, search_dim)
+                if found_elt is not None:
                     break
-            return found_var
+            return found_elt
 
     def __escape_index_error(self, match, group_name):
         """Return the group in a match if it exists, an empty string otherwise.
@@ -262,39 +294,53 @@ class Flattener:
         except IndexError:
             return ""
 
-    def resolve_references(self, var, old_var):
+    def resolve_references(self, var, old_var, search_dim=False):
         """In a given variable, replace all references to other variables in its attributes by absolute references.
 
         :param var: flattened variable in which references should be renamed with absolute references
         :param old_var: original variable (in group structure)
+        :param search_dim: if true, search references to dimensions, if false, search references to variables
         """
-        for attr_name, attr_format in self.__var_references_attributes.items():
+        if search_dim:
+            attr_dict = self.__dim_references_attributes
+        else:
+            attr_dict = self.__var_references_attributes
+
+        for attr_name, attr_format in attr_dict.items():
             if attr_name in var.__dict__:
                 regex_format = self.__references_attributes_regex[attr_format]
                 replace_format = self.__references_attributes_replace[attr_format]
                 attr_value = var.getncattr(attr_name)
                 new_attr_value = regex_format.sub(lambda x: replace_format.format(
-                    var=self.resolve_coordinate(x.group("var"), old_var),
+                    var=self.resolve_coordinate(x.group("var"), old_var, search_dim),
                     other=self.__escape_index_error(x, "other")), attr_value)
                 var.setncattr(attr_name, new_attr_value)
 
-    def adapt_coordinates_names(self, var):
+    def adapt_coordinates_names(self, var, search_dim=False):
         """In a given variable, replace all references to variables in attributes by references to the new names in the
         flattened NetCDF. All references have to be already resolved as absolute references.
 
         :param var: flattened variable in which references should be renamed with new names
+        :param search_dim: if true, search references to dimensions, if false, search references to variables
         """
-        for attr_name, attr_format in self.__var_references_attributes.items():
+        if search_dim:
+            attr_dict = self.__dim_references_attributes
+            name_mapping = self.__dim_map
+        else:
+            attr_dict = self.__var_references_attributes
+            name_mapping = self.__var_map
+
+        for attr_name, attr_format in attr_dict.items():
             if attr_name in var.__dict__:
                 regex_format = self.__references_attributes_regex[attr_format]
                 replace_format = self.__references_attributes_replace[attr_format]
                 attr_value = var.getncattr(attr_name)
                 new_attr_value = regex_format.sub(lambda x: replace_format.format(
-                    var=self.__var_map[x.group("var")],
+                    var=name_mapping[x.group("var")],
                     other=self.__escape_index_error(x, "other")), attr_value)
                 var.setncattr(attr_name, new_attr_value)
-                print("   attribute '{}'  in variable '{}': references '{}' renamed as '{}'"
-                      .format(attr_name, var.name, attr_value, new_attr_value))
+                print("   attribute '{}'  in {} '{}': references '{}' renamed as '{}'"
+                      .format(attr_name, ("variable", "dimension")[search_dim], var.name, attr_value, new_attr_value))
 
     def pathname(self, group, name):
         """Compose full path name to an element in a group structure: /path/to/group/elt
