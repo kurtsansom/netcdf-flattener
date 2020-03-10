@@ -11,6 +11,7 @@ from pathlib import Path
 from unittest import TestCase
 
 from netcdf_flattener import flatten
+from netcdf_flattener.flatten import ReferenceException
 
 
 def make_string_comparable(text):
@@ -37,12 +38,14 @@ class BaseTest(TestCase):
 
     test_data_folder = "data"
 
-    def flatten_and_compare(self, input_name, output_name, reference_name):
+    def flatten_and_compare(self, input_name, output_name, reference_name, lax_mode=False, expect_exception=False):
         """From input CDL, generate a NetCDF file, flatten it and compare its content to a reference CDL
 
         :param input_name: pathname to input CDL file
         :param output_name: name to use for flattened NetCDF
         :param reference_name: reference CDL to use to validate flattened CDL
+        :param lax_mode: false (default) for halting when reference not resolved, true for warnings
+        :param expect_exception: if true, excepts the flattener to raise a ReferenceException
         """
         # Compose full file names
         test_data_path = Path(Path(__file__)).parent / self.test_data_folder
@@ -57,32 +60,41 @@ class BaseTest(TestCase):
 
         # Run flattening script
         print("Flatten '{}' in new file '{}'".format(input_nc, output_nc))
-        flatten(input_nc, output_nc)
 
-        # Dump flattened NetCDF and compare to reference
-        print("Read content of flattened netcdf file '{}' in CDL (ncdump)".format(output_nc))
-        dumped_text = subprocess.check_output(["ncdump", output_nc]).decode("utf-8")
-
-        print("Read content of reference CDL file '{}'".format(reference_cdl))
-        with open(reference_cdl, 'r') as content_file:
-            reference_dump = content_file.read()
-
-        str1 = make_string_comparable(dumped_text)
-        str2 = make_string_comparable(reference_dump)
-
-        # Clean created files
-        os.remove(input_nc)
-        os.remove(output_nc)
-
-        # Test
-        test_result = str1 == str2
-
-        if not test_result:
-            print("Strings don't match!\n\nReference:\n")
-            print(str2)
-            print("\n\nGenerated:\n")
-            print(str1)
+        # Run flattener and expect to a Reference Exception
+        if expect_exception:
+            with self.assertRaises(ReferenceException) as context:
+                flatten(input_nc, output_nc, lax_mode)
+            print("Got exception as expected: {}". format(context.exception))
+            assert True
+        # Expect flattener to succeed
         else:
-            print("Strings match")
+            flatten(input_nc, output_nc, lax_mode)
 
-        assert test_result
+            # Dump flattened NetCDF and compare to reference
+            print("Read content of flattened netcdf file '{}' in CDL (ncdump)".format(output_nc))
+            dumped_text = subprocess.check_output(["ncdump", output_nc]).decode("utf-8")
+
+            print("Read content of reference CDL file '{}'".format(reference_cdl))
+            with open(reference_cdl, 'r') as content_file:
+                reference_dump = content_file.read()
+
+            str1 = make_string_comparable(dumped_text)
+            str2 = make_string_comparable(reference_dump)
+
+            # Clean created files
+            os.remove(input_nc)
+            os.remove(output_nc)
+
+            # Compare flattened to reference
+            test_result = str1 == str2
+
+            if not test_result:
+                print("Strings don't match!\n\nReference:\n")
+                print(str2)
+                print("\n\nGenerated:\n")
+                print(str1)
+            else:
+                print("Strings match")
+
+            assert test_result

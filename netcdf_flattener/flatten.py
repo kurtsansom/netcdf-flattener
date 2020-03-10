@@ -5,22 +5,24 @@
 import hashlib
 import os
 import re
+import warnings
 
 from netCDF4 import Dataset
 
 
-def flatten(input_file, output_file):
+def flatten(input_file, output_file, lax_mode=False):
     """Flatten an input NetCDF file and write the result in an output NetCDF file.
 
     :param input_file: input file name
     :param output_file: output file name
+    :param lax_mode: if false (default), not resolving a reference halts the execution. If true, continue with warning.
     """
-    Flattener(input_file).flatten(output_file)
+    Flattener(input_file, lax_mode).flatten(output_file)
 
 
 class Flattener:
 
-    def __init__(self, input_file):
+    def __init__(self, input_file, lax_mode):
         """Constructor. Initializes the Flattener class given the input file.
 
         :param input_file: input file name
@@ -30,6 +32,7 @@ class Flattener:
         self.__new_separator = '#'
         self.__pathname_format = "{}/{}"
         self.__mapping_str_format = "{}: {}"
+        self.__ref_not_found_error = "REF_NOT_FOUND"
 
         # attributes in which to look for references to variables, and the format of these references:
         # - 0: String attributes whose value is a blank separated list of variable names: "var1 var2
@@ -84,6 +87,8 @@ class Flattener:
         self.__dim_map = dict()
         self.__var_map = dict()
 
+        self.__lax_mode = lax_mode
+
         print("Opening input file {}".format(os.path.abspath(input_file)))
         self.__input_file = Dataset(input_file)
         self.__output_file = None
@@ -107,12 +112,12 @@ class Flattener:
             # - dimensions
             print("Browsing flattened variables to rename dimension references in attributes:")
             for var in self.__output_file.variables.values():
-                self.adapt_coordinates_names(var, search_dim=True)
+                self.adapt_references(var, search_dim=True)
 
             # - variables
             print("Browsing flattened variables to rename variable references in attributes:")
             for var in self.__output_file.variables.values():
-                self.adapt_coordinates_names(var, search_dim=False)
+                self.adapt_references(var, search_dim=False)
 
     def process_group(self, input_group):
         """Flattens a given group to the output file.
@@ -205,7 +210,7 @@ class Flattener:
         # - references to variables
         self.resolve_references(new_var, var, search_dim=False)
 
-    def resolve_coordinate(self, orig_ref, orig_var, search_dim=False):
+    def resolve_reference(self, orig_ref, orig_var, search_dim=False):
         """Resolve the absolute path to a coordinate variable within the group structure.
 
         :param orig_ref: reference to resolve
@@ -229,13 +234,16 @@ class Flattener:
             while ref.startswith("../"):
                 ref = ref[3:]
                 parent_group = parent_group.parent
-
-            # TODO: handle exception if parent_group or var does not exist
+                if parent_group is None:
+                    return self.handle_reference_error(orig_ref, orig_var.group().path)
 
             # Go down child groups
             ref_split = ref.split(self.__default_separator)
             for g in ref_split[:-1]:
-                parent_group = parent_group.groups[g]
+                try:
+                    parent_group = parent_group.groups[g]
+                except KeyError:
+                    return self.handle_reference_error(orig_ref, orig_var.group().path)
 
             # Get variable or dimension
             elt = parent_group.dimensions[ref_split[-1]] if search_dim else parent_group.variables[ref_split[-1]]
@@ -247,8 +255,12 @@ class Flattener:
         else:
             method = " proximity"
             resolved_var = self.search_by_proximity(ref, orig_var.group(), local_apex_reached=False, search_dim=False)
-            absolute_ref = self.__pathname_format.format(resolved_var.group().path, resolved_var.name)
+            if resolved_var is None:
+                return self.handle_reference_error(ref, orig_var.group().path)
+            else:
+                absolute_ref = self.__pathname_format.format(resolved_var.group().path, resolved_var.name)
 
+        # Could resolve reference
         print("      {} coordinate reference to '{}' resolved as '{}'".format(method, orig_ref, absolute_ref))
         return absolute_ref
 
@@ -271,7 +283,10 @@ class Flattener:
 
         # If local apex not reached, search in parent group
         elif not local_apex_reached and ref not in current_group.dimensions.keys():
-            return self.search_by_proximity(ref, current_group.parent, False, search_dim)
+            if current_group.parent is None:
+                return None
+            else:
+                return self.search_by_proximity(ref, current_group.parent, False, search_dim)
 
         # If local apex reached, search down in siblings
         else:
@@ -312,11 +327,11 @@ class Flattener:
                 replace_format = self.__references_attributes_replace[attr_format]
                 attr_value = var.getncattr(attr_name)
                 new_attr_value = regex_format.sub(lambda x: replace_format.format(
-                    var=self.resolve_coordinate(x.group("var"), old_var, search_dim),
+                    var=self.resolve_reference(x.group("var"), old_var, search_dim),
                     other=self.__escape_index_error(x, "other")), attr_value)
                 var.setncattr(attr_name, new_attr_value)
 
-    def adapt_coordinates_names(self, var, search_dim=False):
+    def adapt_references(self, var, search_dim=False):
         """In a given variable, replace all references to variables in attributes by references to the new names in the
         flattened NetCDF. All references have to be already resolved as absolute references.
 
@@ -332,15 +347,34 @@ class Flattener:
 
         for attr_name, attr_format in attr_dict.items():
             if attr_name in var.__dict__:
+                attr_value = var.getncattr(attr_name)
                 regex_format = self.__references_attributes_regex[attr_format]
                 replace_format = self.__references_attributes_replace[attr_format]
-                attr_value = var.getncattr(attr_name)
                 new_attr_value = regex_format.sub(lambda x: replace_format.format(
-                    var=name_mapping[x.group("var")],
+                    var=self.adapt_name(name_mapping, x.group("var")),
                     other=self.__escape_index_error(x, "other")), attr_value)
                 var.setncattr(attr_name, new_attr_value)
                 print("   attribute '{}'  in {} '{}': references '{}' renamed as '{}'"
                       .format(attr_name, ("variable", "dimension")[search_dim], var.name, attr_value, new_attr_value))
+
+    def adapt_name(self, name_mapping, resolved_ref):
+        """Return name of flattened reference. If not found, raise exception or continue warning.
+
+        :param name_mapping: dictionary containing name mapping
+        :param resolved_ref: resolved reference to adapt
+        :return: adapted reference
+        """
+        try:
+            # If could reference could not be resolved, leave error message as reference
+            if self.__ref_not_found_error in resolved_ref:
+                return resolved_ref
+            # Else, replace by new name
+            else:
+                return name_mapping[resolved_ref]
+
+        # If not found in mapping, warning or exception
+        except KeyError:
+            return self.handle_reference_error(resolved_ref)
 
     def pathname(self, group, name):
         """Compose full path name to an element in a group structure: /path/to/group/elt
@@ -403,3 +437,29 @@ class Flattener:
                 if len(new_name) >= self.__max_name_len:
                     new_name = hashlib.sha1(full_name.encode("UTF-8")).hexdigest()
         return new_name
+
+    def handle_reference_error(self, ref, context=None):
+        """Depending on lax/strict mode, either raise exception or log warning. If lax, return reference placeholder.
+
+        :param ref: reference
+        :param context: additional context info to add to message
+        :return: if continue with warning, error replacement name for reference
+        """
+        message = "Reference '{}' could not be resolved".format(ref)
+        if context is not None:
+            message = message + " from {}".format(context)
+        if self.__lax_mode:
+            warnings.warn(message)
+            return self.__ref_not_found_error + ":_" + ref
+        else:
+            raise ReferenceException(message)
+
+
+class ReferenceException(Exception):
+    """Exception raised when references in attributes cannot be resolved.
+
+    Attributes:
+        message -- explanation of the error
+    """
+    def __init__(self, message):
+        super().__init__(message)
