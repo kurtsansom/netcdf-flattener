@@ -210,12 +210,13 @@ class Flattener:
         # - references to variables
         self.resolve_references(new_var, var, search_dim=False)
 
-    def resolve_reference(self, orig_ref, orig_var, search_dim=False):
+    def resolve_reference(self, orig_ref, orig_var, search_dim, is_coordinate_variable=False):
         """Resolve the absolute path to a coordinate variable within the group structure.
 
         :param orig_ref: reference to resolve
         :param orig_var: variable originally containing the reference
         :param search_dim: if true, search references to dimensions, if false, search references to variables
+        :param is_coordinate_variable: true, if looking for a coordinate variable
         :return: absolute path to the reference
         """
         ref = orig_ref
@@ -228,33 +229,14 @@ class Flattener:
         # Reference is given by relative path
         elif self.__default_separator in ref:
             method = " relative"
-            parent_group = orig_var.group()
-
-            # Go up parent groups
-            while ref.startswith("../"):
-                ref = ref[3:]
-                parent_group = parent_group.parent
-                if parent_group is None:
-                    return self.handle_reference_error(orig_ref, orig_var.group().path)
-
-            # Go down child groups
-            ref_split = ref.split(self.__default_separator)
-            for g in ref_split[:-1]:
-                try:
-                    parent_group = parent_group.groups[g]
-                except KeyError:
-                    return self.handle_reference_error(orig_ref, orig_var.group().path)
-
-            # Get variable or dimension
-            elt = parent_group.dimensions[ref_split[-1]] if search_dim else parent_group.variables[ref_split[-1]]
-
-            # Get absolute reference
-            absolute_ref = self.__pathname_format.format(elt.group().path, elt.name)
+            absolute_ref = self.search_by_relative_path(orig_ref, orig_var.group(), search_dim)
+            if absolute_ref is None:
+                absolute_ref = self.handle_reference_error(orig_ref, orig_var.group().path)
 
         # Reference is to be searched by proximity
         else:
             method = " proximity"
-            resolved_var = self.search_by_proximity(ref, orig_var.group(), local_apex_reached=False, search_dim=False)
+            resolved_var = self.search_by_proximity(ref, orig_var.group(), search_dim, False, is_coordinate_variable)
             if resolved_var is None:
                 return self.handle_reference_error(ref, orig_var.group().path)
             else:
@@ -264,15 +246,46 @@ class Flattener:
         print("      {} coordinate reference to '{}' resolved as '{}'".format(method, orig_ref, absolute_ref))
         return absolute_ref
 
-    def search_by_proximity(self, ref, current_group, local_apex_reached=False, search_dim=False):
-        """Resolve the absolute path to a reference within the group structure, using search by proximity.
-
-        First search up in the hierarchy for the coordinate, until local apex is reached. Then search down in siblings.
+    def search_by_relative_path(self, ref, current_group, search_dim):
+        """Resolve the absolute path to a reference within the group structure, using search by relative path.
 
         :param ref: reference to resolve
         :param current_group: current group where searching
-        :param local_apex_reached: False initially, until apex is reached.
         :param search_dim: if true, search references to dimensions, if false, search references to variables
+        :return: absolute path to the coordinate
+        """
+        # Go up parent groups
+        while ref.startswith("../"):
+            if current_group.parent is None:
+                return None
+            ref = ref[3:]
+            current_group = current_group.parent
+
+        # Go down child groups
+        ref_split = ref.split(self.__default_separator)
+        for g in ref_split[:-1]:
+            try:
+                current_group = current_group.groups[g]
+            except KeyError:
+                return None
+
+        # Get variable or dimension
+        elt = current_group.dimensions[ref_split[-1]] if search_dim else current_group.variables[ref_split[-1]]
+
+        # Get absolute reference
+        return self.__pathname_format.format(elt.group().path, elt.name)
+
+    def search_by_proximity(self, ref, current_group, search_dim, local_apex_reached, is_coordinate_variable):
+        """Resolve the absolute path to a reference within the group structure, using search by proximity.
+
+        First search up in the hierarchy for the reference, until root group is reached. If coordinate variable, search
+        until local apex is reached, Then search down in siblings.
+
+        :param ref: reference to resolve
+        :param current_group: current group where searching
+        :param search_dim: if true, search references to dimensions, if false, search references to variables
+        :param local_apex_reached: False initially, until apex is reached.
+        :param is_coordinate_variable: true, if looking for a coordinate variable
         :return: absolute path to the coordinate
         """
         dims_or_vars = current_group.dimensions if search_dim else current_group.variables
@@ -281,21 +294,34 @@ class Flattener:
         if ref in dims_or_vars.keys():
             return dims_or_vars[ref]
 
-        # If local apex not reached, search in parent group
-        elif not local_apex_reached and ref not in current_group.dimensions.keys():
-            if current_group.parent is None:
-                return None
-            else:
-                return self.search_by_proximity(ref, current_group.parent, False, search_dim)
+        local_apex_reached = local_apex_reached or ref in current_group.dimensions.keys()
 
-        # If local apex reached, search down in siblings
+        # Check if has to continue looking in parent group
+        # - normal search: continue until root is reached
+        # - coordinate variable: continue until local apex is reached
+        if is_coordinate_variable:
+            top_reached = local_apex_reached or current_group.parent is None
         else:
+            top_reached = current_group.parent is None
+
+        # Search up
+        if not top_reached:
+            return self.search_by_proximity(ref, current_group.parent, search_dim, local_apex_reached,
+                                            is_coordinate_variable)
+
+        # If coordinate variable and local apex reached, search down in siblings
+        elif is_coordinate_variable and local_apex_reached:
             found_elt = None
             for child_group in current_group.groups.values():
-                found_elt = self.search_by_proximity(ref, child_group, True, search_dim)
+                found_elt = self.search_by_proximity(ref, child_group, search_dim, local_apex_reached,
+                                                     is_coordinate_variable)
                 if found_elt is not None:
                     break
             return found_elt
+
+        # If here, did not find
+        else:
+            return None
 
     def __escape_index_error(self, match, group_name):
         """Return the group in a match if it exists, an empty string otherwise.
@@ -323,11 +349,12 @@ class Flattener:
 
         for attr_name, attr_format in attr_dict.items():
             if attr_name in var.__dict__:
+                is_coordinate_variable = attr_name == "coordinates"
                 regex_format = self.__references_attributes_regex[attr_format]
                 replace_format = self.__references_attributes_replace[attr_format]
                 attr_value = var.getncattr(attr_name)
                 new_attr_value = regex_format.sub(lambda x: replace_format.format(
-                    var=self.resolve_reference(x.group("var"), old_var, search_dim),
+                    var=self.resolve_reference(x.group("var"), old_var, search_dim, is_coordinate_variable),
                     other=self.__escape_index_error(x, "other")), attr_value)
                 var.setncattr(attr_name, new_attr_value)
 
@@ -461,5 +488,6 @@ class ReferenceException(Exception):
     Attributes:
         message -- explanation of the error
     """
+
     def __init__(self, message):
         super().__init__(message)
