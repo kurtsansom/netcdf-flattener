@@ -6,7 +6,6 @@ with open("README.md", "r") as fh:
 setuptools.setup(
      name='netcdf-flattener',  
      version='0.0.1',
-#     scripts=['src/test'] ,
      author="Guillaume Obrecht",
      author_email="guillaume.obrecht@c-ssystems.de",
      description="The NetCDF-flattener package",
@@ -20,4 +19,7 @@ setuptools.setup(
          "License :: OSI Approved :: Apache Software License",
          "Operating System :: OS Independent",
      ],
+     install_requires=[
+          'netCDF4',
+      ],
  )
