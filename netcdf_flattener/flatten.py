@@ -21,11 +21,15 @@ def flatten(input_file, output_file, lax_mode=False):
 
 
 class Flattener:
+    """Utility class contained the input file, the output file being flattened, and all the logic of the flattening
+    process.
+    """
 
     def __init__(self, input_file, lax_mode):
         """Constructor. Initializes the Flattener class given the input file.
 
         :param input_file: input file name
+        :param lax_mode: if false (default), not resolving a reference halts the execution. If true, continue with warning.
         """
         self.__max_name_len = 256
         self.__default_separator = '/'
