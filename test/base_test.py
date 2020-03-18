@@ -6,12 +6,15 @@
 """
 import os
 import re
+import sys
 import subprocess
 from pathlib import Path
 from unittest import TestCase
 
+sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
+
 from netcdf_flattener import flatten
-from netcdf_flattener.flatten import ReferenceException
+from netcdf_flattener import ReferenceException
 
 
 def make_string_comparable(text):

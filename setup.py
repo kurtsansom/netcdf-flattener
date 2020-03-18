@@ -12,7 +12,6 @@ setuptools.setup(
      long_description=long_description,
      long_description_content_type="text/markdown",
      url="https://gitlab.eumetsat.int/additional-data-services/netcdf-flattener",
-     #package_dir={'': 'netcdf_flattener'},
      packages=setuptools.find_packages(),
      classifiers=[
          "Programming Language :: Python :: 3",

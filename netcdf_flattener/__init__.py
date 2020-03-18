@@ -1,1 +1,1 @@
-from .flatten import flatten
+from .flatten import flatten, ReferenceException

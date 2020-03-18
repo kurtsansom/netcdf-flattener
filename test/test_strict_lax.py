@@ -2,7 +2,7 @@
 # Copyright (c) 2020 EUMETSAT
 # License: Apache License 2.0
 
-from test.base_test import BaseTest
+from base_test import BaseTest
 
 
 class Test(BaseTest):
