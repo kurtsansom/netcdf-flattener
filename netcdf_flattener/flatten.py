@@ -24,6 +24,61 @@ class Flattener:
     """Utility class contained the input file, the output file being flattened, and all the logic of the flattening
     process.
     """
+    __max_name_len = 256
+    __default_separator = '/'
+    __new_separator = '#'
+    __pathname_format = "{}/{}"
+    __mapping_str_format = "{}: {}"
+    __ref_not_found_error = "REF_NOT_FOUND"
+
+    # attributes in which to look for references to variables, and the format of these references:
+    # - 0: String attributes whose value is a blank separated list of variable names: "var1 var2
+    # - 1: String attributes comprising a list of blank-separated pairs of words of the form
+    #      "var1: foo var2: bar"
+    # - 2: String attributes comprising a list of blank-separated pairs of words of the form
+    #      "foo: var1 bar: var2"
+    __var_references_attributes = {
+        "ancillary_variables": 0,
+        "bounds": 0,
+        "cell_measures": 2,
+        "cell_methods": 1,
+        "climatology ": 0,
+        "coordinates": 0,
+        "formula_terms": 2,
+        "geometry": 0,
+        "grid_mapping": 0,
+        "interior_ring": 0,
+        "node_coordinates": 0,
+        "node_count": 0,
+        "nodes": 0,
+        "part_node_count": 0,
+    }
+
+    # attributes in which to look for references to dimensions, and the format of these references
+    __dim_references_attributes = {
+        "compress": 0,
+        "instance_dimension": 0,
+        "sample_dimension": 0
+    }
+
+    # regex expressions to read attributes
+    __references_attributes_regex = {
+        0: re.compile(r"(?P<var>\S+)"),
+        1: re.compile(r"(?P<var>\S+): (?P<other>\S+)"),
+        2: re.compile(r"(?P<other>\S+): (?P<var>\S+)")
+    }
+
+    # replacement string in attributes
+    __references_attributes_replace = {
+        0: "{var}{other}",  # Note: 'other' should not be used in that case
+        1: "{var}: {other}",
+        2: "{other}: {var}"
+    }
+
+    # name of the attributes used to store the mapping between original and flattened names
+    __attr_map_name = "flattener_name_mapping_attributes"
+    __dim_map_name = "flattener_name_mapping_dimensions"
+    __var_map_name = "flattener_name_mapping_variables"
 
     def __init__(self, input_file, lax_mode):
         """Constructor. Initializes the Flattener class given the input file.
@@ -31,58 +86,6 @@ class Flattener:
         :param input_file: input file name
         :param lax_mode: if false (default), not resolving a reference halts the execution. If true, continue with warning.
         """
-        self.__max_name_len = 256
-        self.__default_separator = '/'
-        self.__new_separator = '#'
-        self.__pathname_format = "{}/{}"
-        self.__mapping_str_format = "{}: {}"
-        self.__ref_not_found_error = "REF_NOT_FOUND"
-
-        # attributes in which to look for references to variables, and the format of these references:
-        # - 0: String attributes whose value is a blank separated list of variable names: "var1 var2
-        # - 1: String attributes comprising a list of blank-separated pairs of words of the form
-        #      "var1: foo var2: bar"
-        # - 2: String attributes comprising a list of blank-separated pairs of words of the form
-        #      "foo: var1 bar: var2"
-        self.__var_references_attributes = {
-            "ancillary_variables": 0,
-            "bounds": 0,
-            "cell_measures": 2,
-            "cell_methods": 1,
-            "climatology ": 0,
-            "coordinates": 0,
-            "formula_terms": 2,
-            "geometry": 0,
-            "grid_mapping": 0,
-            "interior_ring": 0,
-            "node_coordinates": 0,
-            "node_count": 0,
-            "nodes": 0,
-            "part_node_count": 0,
-        }
-
-        # attributes in which to look for references to dimensions, and the format of these references
-        self.__dim_references_attributes = {
-            "compress": 0,
-            "instance_dimension": 0,
-            "sample_dimension": 0
-        }
-
-        self.__references_attributes_regex = {
-            0: re.compile(r"(?P<var>\S+)"),
-            1: re.compile(r"(?P<var>\S+): (?P<other>\S+)"),
-            2: re.compile(r"(?P<other>\S+): (?P<var>\S+)")
-        }
-
-        self.__references_attributes_replace = {
-            0: "{var}{other}",
-            1: "{var}: {other}",
-            2: "{other}: {var}"
-        }
-
-        self.__attr_map_name = "flattener_name_mapping_attributes"
-        self.__dim_map_name = "flattener_name_mapping_dimensions"
-        self.__var_map_name = "flattener_name_mapping_variables"
 
         self.__attr_map_value = []
         self.__dim_map_value = []
