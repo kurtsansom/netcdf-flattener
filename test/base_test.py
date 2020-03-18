@@ -69,6 +69,7 @@ class BaseTest(TestCase):
             with self.assertRaises(ReferenceException) as context:
                 flatten(input_nc, output_nc, lax_mode)
             print("Got exception as expected: {}". format(context.exception))
+            os.remove(input_nc)
             assert True
         # Expect flattener to succeed
         else:
