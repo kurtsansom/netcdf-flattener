@@ -1,6 +1,4 @@
 build:
   stage: build
-  tags:
-    - ads::docker
   script:
     - ls -lash
