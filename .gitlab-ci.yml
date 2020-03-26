@@ -27,7 +27,7 @@ test:
   script:
     - python3 -m pytest
 
-build:
+build_wheel:
   stage: build
   tags:
     - ads::docker
@@ -35,6 +35,20 @@ build:
     - source venv/bin/activate
   script:
     - python3 setup.py bdist_wheel
+  artifacts:
+    paths:
+      - dist/netcdf_flattener-*.whl
+
+build_doc:
+  stage: build
+  tags:
+    - ads::docker
+  before_script:
+    - source venv/bin/activate
+    - python3 -m pip install sphinx netCDF4
+  script:
+    - cd doc
+    - sphinx-build -b html . build
 
 deploy:
   stage: deploy
