@@ -1,6 +1,34 @@
-build:
-  stage: build
+stages:
+  - setup
+  - test
+  - build
+  - deploy
+
+default:
   tags:
     - ads::docker
+
+setup:
+  stage: setup
   script:
-    - ls -lash
+    - python3 -m venv ~/venv
+    - source ~/venv/bin/activate
+    - python3 -m pip install --upgrade pip setuptools wheel pytest
+
+test:
+  stage: test
+  before_script:
+    - apk update && apk install netcdf
+  script:
+    - python3 -m pytest
+
+build:
+  stage: build
+  script:
+    - python3 setup.py bdist_wheel
+
+deploy:
+  stage: deploy
+  script:
+    - python3 -m pip install dist/netcdf_flattener-*.whl
+    - python3 -c "import netcdf_flattener"
