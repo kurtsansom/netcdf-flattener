@@ -15,8 +15,6 @@ setup:
 
 test:
   stage: test
-  tags:
-    - ads::docker
   before_script:
     - apk update && apk install netcdf
   script:
@@ -24,15 +22,11 @@ test:
 
 build:
   stage: build
-  tags:
-    - ads::docker
   script:
     - python3 setup.py bdist_wheel
 
 deploy:
   stage: deploy
-  tags:
-    - ads::docker
   script:
     - python3 -m pip install dist/netcdf_flattener-*.whl
     - python3 -c "import netcdf_flattener"
