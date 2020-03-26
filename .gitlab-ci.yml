@@ -9,24 +9,39 @@ setup:
   tags:
     - ads::docker
   script:
-    - python3 -m venv ~/venv
-    - source ~/venv/bin/activate
-    - python3 -m pip install --upgrade pip setuptools wheel pytest
+    - python3 -m venv venv
+    - source venv/bin/activate
+    - python3 -m pip install --upgrade pip setuptools wheel
+  artifacts:
+    paths:
+      - venv
 
 test:
   stage: test
+  tags:
+    - ads::docker
   before_script:
+    - source venv/bin/activate
+    - python3 -m pip install pytest netCDF4
     - apk update && apk install netcdf
   script:
     - python3 -m pytest
 
 build:
   stage: build
+  tags:
+    - ads::docker
+  before_script:
+    - source venv/bin/activate
   script:
     - python3 setup.py bdist_wheel
 
 deploy:
   stage: deploy
+  tags:
+    - ads::docker
+  before_script:
+    - source venv/bin/activate
   script:
     - python3 -m pip install dist/netcdf_flattener-*.whl
     - python3 -c "import netcdf_flattener"
