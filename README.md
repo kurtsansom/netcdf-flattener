@@ -3,7 +3,7 @@
 Flatten netCDF files while preserving references as described in the CF Conventions 1.8, chapter 2.7.
 
 ## Usage
-To flatten the Netcdf file named "input_file.nc" into a new file named "output_file.nc", use the following command.
+To flatten the Netcdf file named *"input_file.nc"* into a new file named *"output_file.nc"*, use the following command.
 
     import netcdf_flattener
     netcdf_flattener.flatten("input_file.nc", "output_file.nc")
@@ -69,3 +69,11 @@ From the "doc" folder, build the documentation:
     sphinx-build -b html . build
 
 The entry point to the documentation is the doc/build/index.html file.
+
+## License
+
+This code is under Apache 2.0 License. See [LICENSE](LICENSE) for the full license text.
+
+## Authors
+
+See [AUTHORS](AUTHORS.md) for details.
