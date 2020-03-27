@@ -30,7 +30,7 @@ Run the following command from the repository root:
 
 Install the wheel file using pip:
 
-    python3 -m pip install dist/netcdf_flattener-1.0.0-py3-none-any.whl
+    python3 -m pip install dist/netcdf_flattener-*.whl
 
 ## Automated testing
 
