@@ -16,19 +16,15 @@ with warning, specify the `lax_mode` parameter:
 
 ## Deployment
 
-### Install build dependencies:
+Install the build dependencies:
 
     python3 -m pip install --upgrade pip setuptools wheel
 
-### Compile wheel file:
-
-Run the following command from the repository root:
+To compile the wheel file, run the following command from the repository root:
 
     python3 setup.py bdist_wheel
 
-### Install Pip package:
-
-Install the wheel file using pip:
+Install the wheel file using PIP:
 
     python3 -m pip install dist/netcdf_flattener-*.whl
 
@@ -46,16 +42,13 @@ Install Pytest:
 
     python3 -m pip install pytest
 
-(After this step, you may need to re-activate your virtual environment to make sure that pytest is not going to be run 
-from the local machine)
-
 ### Run the tests
 
-Run the tests pytests: 
+Run Pytest from the root of the repository: 
 
     python3 -m pytest
 
-### Documentation
+## Documentation
 
 A Sphinx project is provided to generate the HTML documentation from the code.
 
