@@ -49,6 +49,9 @@ build_doc:
   script:
     - cd doc
     - sphinx-build -b html . build
+  artifacts:
+    paths:
+      - doc/build/*
 
 deploy:
   stage: deploy
