@@ -34,7 +34,16 @@ coverage:
   before_script:
     - pip install pytest-cov netCDF4
   script:
-    pytest --cov-report term --cov=netcdf_flattener
+    - pytest --cov-report term --cov=netcdf_flattener
+    
+security:
+  stage: test
+  tags:
+    - ads::docker
+  before_script:
+    - pip install bandit
+  script:
+    - bandit -r .
 
 build_wheel:
   stage: build
