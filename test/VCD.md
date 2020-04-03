@@ -18,7 +18,7 @@ Requirements are verified using the following methods.
 | #4  | Preserve original names where possible              | Functional | T   | [test_long_names](test/test_long_names.py) | Compliant |
 | #5  | Strict by default                                   | Functional | T   | [test_strict_lax](test/test_strict_lax.py) | Compliant |
 | #6  | Be stand-alone Python package                       | Packaging  | RoD | [setup.py](setup.py)                       | Compliant |
-| #7  | Use Python netCDF4 package from Unidata             | Packaging  | RoD | [setup.py](setup.py#L21)                   | Compliant |
+| #7  | Use Python netCDF4 package from Unidata             | Packaging  | RoD | [setup.py](setup.py#L44)                   | Compliant |
 | #8  | Accept netCDF4 I/O                                  | Functional | T   | [test_flatten](test/test_flatten.py)       | Compliant |
 | #9  | Preserve original data types                        | Functional | T   | [test_flatten](test/test_flatten.py)       | Compliant |
 | #10 | Conform to QA requirements                          | Quality    | RoD | [QA VCD](test/QA_VCD.md)                   | Compliant |
