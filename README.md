@@ -41,6 +41,8 @@ On CentOS: `sudo yum install netcdf `
 Install Pytest:
 
     python3 -m pip install pytest
+    
+All other dependencies are managed by pip and use OSI-approved licenses.
 
 ### Run the tests
 
