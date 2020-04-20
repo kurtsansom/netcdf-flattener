@@ -1,0 +1,178 @@
+netcdf output1 {
+dimensions:
+	lat = 180 ;
+	lon = 360 ;
+	e3sm\#lat = 2 ;
+	e3sm\#lon = 3 ;
+	e3sm\#time = UNLIMITED ; // (4 currently)
+	nasa\#lat = 2 ;
+	nasa\#lon = 3 ;
+	nasa\#time = UNLIMITED ; // (4 currently)
+	nsidc\#time = UNLIMITED ; // (5 currently)
+variables:
+	double e3sm\#lat(e3sm\#lat) ;
+		e3sm\#lat:long_name = "latitude" ;
+		e3sm\#lat:standard_name = "latitude" ;
+		e3sm\#lat:units = "degrees_north" ;
+		e3sm\#lat:axis = "Y" ;
+	double e3sm\#lon(e3sm\#lon) ;
+		e3sm\#lon:long_name = "longitude" ;
+		e3sm\#lon:standard_name = "longitude" ;
+		e3sm\#lon:units = "degrees_east" ;
+		e3sm\#lon:axis = "X" ;
+	double e3sm\#time(e3sm\#time) ;
+		e3sm\#time:long_name = "time of measurement" ;
+		e3sm\#time:standard_name = "time" ;
+		e3sm\#time:units = "days since 1964-03-12 12:09:00 -9:00" ;
+		e3sm\#time:calendar = "leap" ;
+	float e3sm\#e3sm_01\#tas(e3sm\#time, e3sm\#lat, e3sm\#lon) ;
+		e3sm\#e3sm_01\#tas:long_name = "surface air temperature" ;
+		e3sm\#e3sm_01\#tas:standard_name = "air_temperature" ;
+		e3sm\#e3sm_01\#tas:units = "kelvin" ;
+		e3sm\#e3sm_01\#tas:coordinates = "e3sm#time e3sm#lat e3sm#lon" ;
+		e3sm\#e3sm_01\#tas:cell_methods = "e3sm#time: mean" ;
+		e3sm\#e3sm_01\#tas:cell_measures = "area: e3sm#time" ;
+		e3sm\#e3sm_01\#tas:sample_dimension = "e3sm#time" ;
+	float e3sm\#e3sm_02\#tas(e3sm\#time, e3sm\#lat, e3sm\#lon) ;
+		e3sm\#e3sm_02\#tas:long_name = "surface air temperature" ;
+		e3sm\#e3sm_02\#tas:standard_name = "air_temperature" ;
+		e3sm\#e3sm_02\#tas:coordinates = "e3sm#time e3sm#lat e3sm#lon" ;
+		e3sm\#e3sm_02\#tas:cell_methods = "e3sm#time: mean e3sm#lat: sum" ;
+		e3sm\#e3sm_02\#tas:cell_measures = "area: e3sm#time volume: e3sm#lat" ;
+	float e3sm\#e3sm_03\#tas(e3sm\#time, e3sm\#lat, e3sm\#lon) ;
+		e3sm\#e3sm_03\#tas:long_name = "surface air temperature" ;
+		e3sm\#e3sm_03\#tas:standard_name = "air_temperature" ;
+		e3sm\#e3sm_03\#tas:coordinates = "e3sm#time e3sm#lat e3sm#lon" ;
+		e3sm\#e3sm_03\#tas:cell_methods = "e3sm#time: mean" ;
+		e3sm\#e3sm_03\#tas:cell_measures = "area: e3sm#time" ;
+	float nasa\#nasa_data\#tas(nasa\#time, nasa\#lat, nasa\#lon) ;
+		nasa\#nasa_data\#tas:long_name = "surface air temperature" ;
+		nasa\#nasa_data\#tas:standard_name = "air_temperature" ;
+		nasa\#nasa_data\#tas:units = "kelvin" ;
+		nasa\#nasa_data\#tas:coordinates = "nasa#nasa_geo#time nasa#nasa_geo#lat nasa#nasa_geo#lon" ;
+	float nasa\#nasa_data\#sic(nasa\#time, nasa\#lat, nasa\#lon) ;
+		nasa\#nasa_data\#sic:long_name = "sea-ice concentration" ;
+		nasa\#nasa_data\#sic:standard_name = "sea_ice_area_fraction" ;
+		nasa\#nasa_data\#sic:units = "1" ;
+		nasa\#nasa_data\#sic:coordinates = "nasa#nasa_geo#time nasa#nasa_geo#lat nasa#nasa_geo#lon" ;
+	float nasa\#nasa_data\#sit(nasa\#time, nasa\#lat, nasa\#lon) ;
+		nasa\#nasa_data\#sit:long_name = "sea-ice thickness" ;
+		nasa\#nasa_data\#sit:standard_name = "sea_ice_thickness" ;
+		nasa\#nasa_data\#sit:units = "meter" ;
+		nasa\#nasa_data\#sit:coordinates = "nasa#nasa_geo#time nasa#nasa_geo#lat nasa#nasa_geo#lon" ;
+	double nasa\#nasa_geo\#lat(nasa\#lat) ;
+		nasa\#nasa_geo\#lat:long_name = "latitude" ;
+		nasa\#nasa_geo\#lat:standard_name = "latitude" ;
+		nasa\#nasa_geo\#lat:units = "degrees_north" ;
+		nasa\#nasa_geo\#lat:axis = "Y" ;
+	double nasa\#nasa_geo\#lon(nasa\#lon) ;
+		nasa\#nasa_geo\#lon:long_name = "longitude" ;
+		nasa\#nasa_geo\#lon:standard_name = "longitude" ;
+		nasa\#nasa_geo\#lon:units = "degrees_east" ;
+		nasa\#nasa_geo\#lon:axis = "X" ;
+	double nasa\#nasa_geo\#time(nasa\#time) ;
+		nasa\#nasa_geo\#time:long_name = "time of measurement" ;
+		nasa\#nasa_geo\#time:standard_name = "time" ;
+		nasa\#nasa_geo\#time:units = "days since 1964-03-12 12:09:00 -9:00" ;
+		nasa\#nasa_geo\#time:calendar = "leap" ;
+	float nsidc\#nsidc\#tas(nsidc\#time) ;
+		nsidc\#nsidc\#tas:long_name = "surface air temperature" ;
+		nsidc\#nsidc\#tas:standard_name = "air_temperature" ;
+		nsidc\#nsidc\#tas:units = "kelvin" ;
+	double nsidc\#nsidc\#time(nsidc\#time) ;
+		nsidc\#nsidc\#time:long_name = "time of measurement" ;
+		nsidc\#nsidc\#time:standard_name = "time" ;
+		nsidc\#nsidc\#time:units = "days since 1964-03-12 12:09:00 -9:00" ;
+		nsidc\#nsidc\#time:calendar = "leap" ;
+
+// global attributes:
+		:Conventions = "CF-1.8" ;
+		:title = "A template/test dataset for Groups in CF" ;
+		:history = "Global history attribute" ;
+		:e3sm\#title = "group-level title attribute is allowed" ;
+		:e3sm\#e3sm_01\#Realization = "1" ;
+		:e3sm\#e3sm_01\#history = "Group-level history attributes are OK too" ;
+		:e3sm\#e3sm_02\#Realization = "2" ;
+		:e3sm\#e3sm_03\#Realization = "3" ;
+		:nasa\#nasa_data\#history = "Group-level history attributes are OK too" ;
+		string :flattener_name_mapping_attributes = "Conventions: Conventions", "title: title", "history: history", "e3sm#title: /e3sm/title", "e3sm#e3sm_01#Realization: /e3sm/e3sm_01/Realization", "e3sm#e3sm_01#history: /e3sm/e3sm_01/history", "e3sm#e3sm_02#Realization: /e3sm/e3sm_02/Realization", "e3sm#e3sm_03#Realization: /e3sm/e3sm_03/Realization", "nasa#nasa_data#history: /nasa/nasa_data/history" ;
+		string :flattener_name_mapping_dimensions = "lat: lat", "lon: lon", "e3sm#lat: /e3sm/lat", "e3sm#lon: /e3sm/lon", "e3sm#time: /e3sm/time", "nasa#lat: /nasa/lat", "nasa#lon: /nasa/lon", "nasa#time: /nasa/time", "nsidc#time: /nsidc/time" ;
+		string :flattener_name_mapping_variables = "e3sm#lat: /e3sm/lat", "e3sm#lon: /e3sm/lon", "e3sm#time: /e3sm/time", "e3sm#e3sm_01#tas: /e3sm/e3sm_01/tas", "e3sm#e3sm_02#tas: /e3sm/e3sm_02/tas", "e3sm#e3sm_03#tas: /e3sm/e3sm_03/tas", "nasa#nasa_data#tas: /nasa/nasa_data/tas", "nasa#nasa_data#sic: /nasa/nasa_data/sic", "nasa#nasa_data#sit: /nasa/nasa_data/sit", "nasa#nasa_geo#lat: /nasa/nasa_geo/lat", "nasa#nasa_geo#lon: /nasa/nasa_geo/lon", "nasa#nasa_geo#time: /nasa/nasa_geo/time", "nsidc#nsidc#tas: /nsidc/nsidc/tas", "nsidc#nsidc#time: /nsidc/nsidc/time" ;
+data:
+
+ e3sm\#lat = -90, 90 ;
+
+ e3sm\#lon = 0, 120, 240 ;
+
+ e3sm\#time = 1, 2, 3, 4 ;
+
+ e3sm\#e3sm_01\#tas =
+  271.15, 271.15, 271.15,
+  271.15, 271.15, 271.15,
+  271.15, 271.15, 271.15,
+  271.15, 271.15, 271.15,
+  271.15, 271.15, 271.15,
+  271.15, 271.15, 271.15,
+  271.15, 271.15, 271.15,
+  271.15, 271.15, 271.15 ;
+
+ e3sm\#e3sm_02\#tas =
+  272.15, 272.15, 272.15,
+  272.15, 272.15, 272.15,
+  272.15, 272.15, 272.15,
+  272.15, 272.15, 272.15,
+  272.15, 272.15, 272.15,
+  272.15, 272.15, 272.15,
+  272.15, 272.15, 272.15,
+  272.15, 272.15, 272.15 ;
+
+ e3sm\#e3sm_03\#tas =
+  273.15, 273.15, 273.15,
+  273.15, 273.15, 273.15,
+  273.15, 273.15, 273.15,
+  273.15, 273.15, 273.15,
+  273.15, 273.15, 273.15,
+  273.15, 273.15, 273.15,
+  273.15, 273.15, 273.15,
+  273.15, 273.15, 273.15 ;
+
+ nasa\#nasa_data\#tas =
+  271.15, 271.15, 271.15,
+  271.15, 271.15, 271.15,
+  271.15, 271.15, 271.15,
+  271.15, 271.15, 271.15,
+  271.15, 271.15, 271.15,
+  271.15, 271.15, 271.15,
+  271.15, 271.15, 271.15,
+  271.15, 271.15, 271.15 ;
+
+ nasa\#nasa_data\#sic =
+  0.73, 0.73, 0.73,
+  0.73, 0.73, 0.73,
+  0.73, 0.73, 0.73,
+  0.73, 0.73, 0.73,
+  0.73, 0.73, 0.73,
+  0.73, 0.73, 0.73,
+  0.73, 0.73, 0.73,
+  0.73, 0.73, 0.73 ;
+
+ nasa\#nasa_data\#sit =
+  3.7, 3.7, 3.7,
+  3.7, 3.7, 3.7,
+  3.7, 3.7, 3.7,
+  3.7, 3.7, 3.7,
+  3.7, 3.7, 3.7,
+  3.7, 3.7, 3.7,
+  3.7, 3.7, 3.7,
+  3.7, 3.7, 3.7 ;
+
+ nasa\#nasa_geo\#lat = -90, 90 ;
+
+ nasa\#nasa_geo\#lon = 0, 120, 240 ;
+
+ nasa\#nasa_geo\#time = 1, 2, 3, 4 ;
+
+ nsidc\#nsidc\#tas = 274.15, 274.15, 274.15, 274.15, 274.15 ;
+
+ nsidc\#nsidc\#time = 1, 2, 3, 4, 5 ;
+}
