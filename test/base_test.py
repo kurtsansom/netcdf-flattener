@@ -28,6 +28,7 @@ import sys
 import subprocess
 from pathlib import Path
 from unittest import TestCase
+from netCDF4 import Dataset
 
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
 
@@ -85,13 +86,21 @@ class BaseTest(TestCase):
         # Run flattener and expect to a Reference Exception
         if expect_exception:
             with self.assertRaises(ReferenceException) as context:
-                flatten(input_nc, output_nc, lax_mode)
+                input_ds = Dataset(input_nc)
+                output_ds = Dataset(output_nc, 'w', format='NETCDF4')
+                flatten(input_ds, output_ds, lax_mode=lax_mode)
             print("Got exception as expected: {}". format(context.exception))
+            input_ds.close()
+            output_ds.close()
             os.remove(input_nc)
             assert True
         # Expect flattener to succeed
         else:
-            flatten(input_nc, output_nc, lax_mode)
+            input_ds = Dataset(input_nc)
+            output_ds = Dataset(output_nc, 'w', format='NETCDF4')
+            output = flatten(input_ds, output_ds, lax_mode=lax_mode)
+            input_ds.close()
+            output_ds.close()
 
             # Dump flattened NetCDF and compare to reference
             print("Read content of flattened netcdf file '{}' in CDL (ncdump)".format(output_nc))

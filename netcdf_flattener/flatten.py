@@ -28,14 +28,14 @@ import warnings
 from netCDF4 import Dataset
 
 
-def flatten(input_file, output_file, lax_mode=False):
-    """Flatten an input NetCDF file and write the result in an output NetCDF file.
+def flatten(input_ds, output_ds, lax_mode=False):
+    """Flatten an input NetCDF dataset and write the result in an output NetCDF dataset.
 
-    :param input_file: input file name
-    :param output_file: output file name
+    :param input_ds: input netcdf4 dataset
+    :param output_ds: output netcdf4 dataset
     :param lax_mode: if false (default), not resolving a reference halts the execution. If true, continue with warning.
     """
-    Flattener(input_file, lax_mode).flatten(output_file)
+    Flattener(input_ds, lax_mode).flatten(output_ds)
 
 
 class Flattener:
@@ -98,10 +98,10 @@ class Flattener:
     __dim_map_name = "flattener_name_mapping_dimensions"
     __var_map_name = "flattener_name_mapping_variables"
 
-    def __init__(self, input_file, lax_mode):
+    def __init__(self, input_ds, lax_mode):
         """Constructor. Initializes the Flattener class given the input file.
 
-        :param input_file: input file name
+        :param input_ds: input netcdf dataset
         :param lax_mode: if false (default), not resolving a reference halts the execution. If true, continue with warning.
         """
 
@@ -114,35 +114,42 @@ class Flattener:
 
         self.__lax_mode = lax_mode
 
-        print("Opening input file {}".format(os.path.abspath(input_file)))
-        self.__input_file = Dataset(input_file)
+        self.__input_file = input_ds
         self.__output_file = None
 
-    def flatten(self, output_file):
+    def flatten(self, output_ds):
         """Flattens and write to output file
 
-        :param output_file:
+        :param output_ds: The dataset in which to store the flattened result.
         """
-        print("Opening output file {}".format(os.path.abspath(output_file)))
-        with Dataset(output_file, 'w', format='NETCDF4') as self.__output_file:
-            # Flatten product
-            self.process_group(self.__input_file)
+        # print("Opening output file {}".format(os.path.abspath(output_file)))
 
-            # Add name mapping attributes
-            self.__output_file.setncattr(self.__attr_map_name, self.__attr_map_value)
-            self.__output_file.setncattr(self.__dim_map_name, self.__dim_map_value)
-            self.__output_file.setncattr(self.__var_map_name, self.__var_map_value)
+        if output_ds == self.__input_file \
+                or output_ds.filepath() == self.__input_file.filepath() \
+                or output_ds.data_model != 'NETCDF4':
+            raise ValueError("Invalid inputs. Input and output datasets should be different, and output should be of "
+                             "the 'NETCDF4' format.")
 
-            # Browse flattened variables to rename references:
-            # - dimensions
-            print("Browsing flattened variables to rename dimension references in attributes:")
-            for var in self.__output_file.variables.values():
-                self.adapt_references(var, search_dim=True)
+        self.__output_file = output_ds
 
-            # - variables
-            print("Browsing flattened variables to rename variable references in attributes:")
-            for var in self.__output_file.variables.values():
-                self.adapt_references(var, search_dim=False)
+        # Flatten product
+        self.process_group(self.__input_file)
+
+        # Add name mapping attributes
+        self.__output_file.setncattr(self.__attr_map_name, self.__attr_map_value)
+        self.__output_file.setncattr(self.__dim_map_name, self.__dim_map_value)
+        self.__output_file.setncattr(self.__var_map_name, self.__var_map_value)
+
+        # Browse flattened variables to rename references:
+        # - dimensions
+        print("Browsing flattened variables to rename dimension references in attributes:")
+        for var in self.__output_file.variables.values():
+            self.adapt_references(var, search_dim=True)
+
+        # - variables
+        print("Browsing flattened variables to rename variable references in attributes:")
+        for var in self.__output_file.variables.values():
+            self.adapt_references(var, search_dim=False)
 
     def process_group(self, input_group):
         """Flattens a given group to the output file.
