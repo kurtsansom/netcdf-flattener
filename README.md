@@ -3,16 +3,18 @@
 Flatten netCDF files while preserving references as described in the CF Conventions 1.8, chapter 2.7.
 
 ## Usage
-To flatten the Netcdf file named *"input_file.nc"* into a new file named *"output_file.nc"*, use the following command.
+The flattener takes as input and output NetCDF *Dataset* objects, which the user can create or open from *".nc"* files 
+using the netCDF4 API. To flatten the Dataset named *"input_dataset"* into a Dataset named *"output_dataset"*, use the 
+following command. In most cases, *"output_dataset"* will be an empty Dataset.
 
     import netcdf_flattener
-    netcdf_flattener.flatten("input_file.nc", "output_file.nc")
+    netcdf_flattener.flatten(input_dataset, output_dataset)
 
 By default, the flattener is in strict mode and returns an exception if a an internal reference from a variable 
 attribute to a dimension or variable could not be resolved. To use the lax mode that continues the flattening process 
 with warning, specify the `lax_mode` parameter:
 
-    netcdf_flattener.flatten("input_file.nc", "output_file.nc", lax_mode=True)
+    netcdf_flattener.flatten(input_dataset, output_dataset, lax_mode=True)
 
 ## Deployment
 
