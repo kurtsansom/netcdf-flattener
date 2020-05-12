@@ -56,7 +56,6 @@ group: e3sm {
     		sic:standard_name = "sea_ice_area_fraction" ;
     		sic:units = "1" ;
     		sic:coordinates = "time wrong_var lon" ;
-    		sic:cell_methods = "../../../time: mean" ;
     		sic:cell_measures = "area: ../wrong_group/time" ;
     		sic:sample_dimension = "/e3sm/wrong_name" ;
 

@@ -31,7 +31,6 @@ variables:
 		e3sm\#e3sm_01\#sic:standard_name = "sea_ice_area_fraction" ;
 		e3sm\#e3sm_01\#sic:units = "1" ;
 		e3sm\#e3sm_01\#sic:coordinates = "e3sm#time REF_NOT_FOUND:_wrong_var e3sm#lon" ;
-		e3sm\#e3sm_01\#sic:cell_methods = "REF_NOT_FOUND:_../../../time: mean" ;
 		e3sm\#e3sm_01\#sic:cell_measures = "area: REF_NOT_FOUND:_../wrong_group/time" ;
 		e3sm\#e3sm_01\#sic:sample_dimension = "REF_NOT_FOUND:_/e3sm/wrong_name" ;
 
