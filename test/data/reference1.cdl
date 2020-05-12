@@ -95,8 +95,8 @@ variables:
 		:e3sm\#e3sm_02\#Realization = "2" ;
 		:e3sm\#e3sm_03\#Realization = "3" ;
 		:nasa\#nasa_data\#history = "Group-level history attributes are OK too" ;
-		string :flattener_name_mapping_attributes = "Conventions: Conventions", "title: title", "history: history", "e3sm#title: /e3sm/title", "e3sm#e3sm_01#Realization: /e3sm/e3sm_01/Realization", "e3sm#e3sm_01#history: /e3sm/e3sm_01/history", "e3sm#e3sm_02#Realization: /e3sm/e3sm_02/Realization", "e3sm#e3sm_03#Realization: /e3sm/e3sm_03/Realization", "nasa#nasa_data#history: /nasa/nasa_data/history" ;
-		string :flattener_name_mapping_dimensions = "lat: lat", "lon: lon", "e3sm#lat: /e3sm/lat", "e3sm#lon: /e3sm/lon", "e3sm#time: /e3sm/time", "nasa#lat: /nasa/lat", "nasa#lon: /nasa/lon", "nasa#time: /nasa/time", "nsidc#time: /nsidc/time" ;
+		string :flattener_name_mapping_attributes = "Conventions: /Conventions", "title: /title", "history: /history", "e3sm#title: /e3sm/title", "e3sm#e3sm_01#Realization: /e3sm/e3sm_01/Realization", "e3sm#e3sm_01#history: /e3sm/e3sm_01/history", "e3sm#e3sm_02#Realization: /e3sm/e3sm_02/Realization", "e3sm#e3sm_03#Realization: /e3sm/e3sm_03/Realization", "nasa#nasa_data#history: /nasa/nasa_data/history" ;
+		string :flattener_name_mapping_dimensions = "lat: /lat", "lon: /lon", "e3sm#lat: /e3sm/lat", "e3sm#lon: /e3sm/lon", "e3sm#time: /e3sm/time", "nasa#lat: /nasa/lat", "nasa#lon: /nasa/lon", "nasa#time: /nasa/time", "nsidc#time: /nsidc/time" ;
 		string :flattener_name_mapping_variables = "e3sm#lat: /e3sm/lat", "e3sm#lon: /e3sm/lon", "e3sm#time: /e3sm/time", "e3sm#e3sm_01#tas: /e3sm/e3sm_01/tas", "e3sm#e3sm_02#tas: /e3sm/e3sm_02/tas", "e3sm#e3sm_03#tas: /e3sm/e3sm_03/tas", "nasa#nasa_data#tas: /nasa/nasa_data/tas", "nasa#nasa_data#sic: /nasa/nasa_data/sic", "nasa#nasa_data#sit: /nasa/nasa_data/sit", "nasa#nasa_geo#lat: /nasa/nasa_geo/lat", "nasa#nasa_geo#lon: /nasa/nasa_geo/lon", "nasa#nasa_geo#time: /nasa/nasa_geo/time", "nsidc#nsidc#tas: /nsidc/nsidc/tas", "nsidc#nsidc#time: /nsidc/nsidc/time" ;
 data:
 

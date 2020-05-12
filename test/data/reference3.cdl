@@ -42,8 +42,8 @@ variables:
 		:e3sm\#title = "group-level title attribute is allowed" ;
 		:e3sm\#e3sm_01\#Realization = "1" ;
 		:e3sm\#e3sm_01\#history = "Group-level history attributes are OK too" ;
-		string :flattener_name_mapping_attributes = "Conventions: Conventions", "title: title", "history: history", "e3sm#title: /e3sm/title", "e3sm#e3sm_01#Realization: /e3sm/e3sm_01/Realization", "e3sm#e3sm_01#history: /e3sm/e3sm_01/history" ;
-		string :flattener_name_mapping_dimensions = "lat: lat", "lon: lon", "e3sm#lat: /e3sm/lat", "e3sm#lon: /e3sm/lon", "e3sm#time: /e3sm/time" ;
+		string :flattener_name_mapping_attributes = "Conventions: /Conventions", "title: /title", "history: /history", "e3sm#title: /e3sm/title", "e3sm#e3sm_01#Realization: /e3sm/e3sm_01/Realization", "e3sm#e3sm_01#history: /e3sm/e3sm_01/history" ;
+		string :flattener_name_mapping_dimensions = "lat: /lat", "lon: /lon", "e3sm#lat: /e3sm/lat", "e3sm#lon: /e3sm/lon", "e3sm#time: /e3sm/time" ;
 		string :flattener_name_mapping_variables = "e3sm#lat: /e3sm/lat", "e3sm#lon: /e3sm/lon", "e3sm#time: /e3sm/time", "e3sm#e3sm_01#tas: /e3sm/e3sm_01/tas", "e3sm#e3sm_01#sic: /e3sm/e3sm_01/sic" ;
 data:
 

@@ -269,8 +269,13 @@ class Flattener:
         else:
             method = " proximity"
             resolved_var = self.search_by_proximity(ref, orig_var.group(), search_dim, False, is_coordinate_variable)
+            # If not found, send warning or error
             if resolved_var is None:
                 return self.handle_reference_error(ref, orig_var.group().path)
+            # If found in root group
+            elif resolved_var.group().parent is None:
+                absolute_ref = self.__default_separator + resolved_var.name
+            # If found in other group
             else:
                 absolute_ref = self.__pathname_format.format(resolved_var.group().path, resolved_var.name)
 
@@ -443,7 +448,7 @@ class Flattener:
         :return: pathname
         """
         if group.parent is None:
-            return name
+            return self.__default_separator + name
         else:
             return self.__pathname_format.format(group.path, name)
 
