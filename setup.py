@@ -27,7 +27,7 @@ with open("README.md", "r") as fh:
 
 setuptools.setup(
      name='netcdf-flattener',  
-     version='1.0.0',
+     version='1.0.1',
      author="Guillaume Obrecht",
      author_email="guillaume.obrecht@c-ssystems.de",
      description="The NetCDF-flattener package",
