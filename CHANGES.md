@@ -2,7 +2,7 @@
 All notable changes to this project will be documented in this file.
 
 ## 1.0.1
-- Issue #8: Change API to use `Dataset` objects as I/O instead of filenames.
+- Issue #8: Correct API to use `Dataset` objects as I/O instead of filenames.
 - Issue #21:
   - Fix issue with some references to dimensions/variables in the root group 
   not being resolved. 
