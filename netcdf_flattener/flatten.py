@@ -337,12 +337,8 @@ class Flattener:
                 type = "dimension "
             # If found
             if resolved_var is not None:
-                # If found in root group
-                if resolved_var.group().parent is None:
-                    absolute_ref = self.__default_separator + resolved_var.name
-                # If found in other group
-                else:
-                    absolute_ref = self.__pathname_format.format(resolved_var.group().path, resolved_var.name)
+                group_name = "" if resolved_var.group().parent is None else resolved_var.group().path
+                absolute_ref = self.__pathname_format.format(group_name, resolved_var.name)
 
         # Could not resolve reference
         if absolute_ref is None:
