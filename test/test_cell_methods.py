@@ -20,27 +20,19 @@ specific language governing permissions and limitations
 under the License.
 """
 
-import setuptools
+from base_test import BaseTest
 
-with open("README.md", "r") as fh:
-    long_description = fh.read()
 
-setuptools.setup(
-     name='netcdf-flattener',  
-     version='1.0.1',
-     author="Guillaume Obrecht",
-     author_email="guillaume.obrecht@c-ssystems.de",
-     description="The NetCDF-flattener package",
-     long_description=long_description,
-     long_description_content_type="text/markdown",
-     url="https://gitlab.eumetsat.int/additional-data-services/netcdf-flattener",
-     packages=setuptools.find_packages(),
-     classifiers=[
-         "Programming Language :: Python :: 3",
-         "License :: OSI Approved :: Apache Software License",
-         "Operating System :: OS Independent",
-     ],
-     install_requires=[
-          'netCDF4',
-      ],
- )
+class Test(BaseTest):
+    def test_cell_methods(self):
+        """Tests the particular of the cell_methods attribute, which can contain references to dimensions, coordinate
+        variables, the word "area" or any standard name.
+
+        Flatten input file 'input4.cdl' and compare to reference 'reference4.cdl'.
+        """
+        # Inputs
+        input_name = "input4.cdl"
+        reference_name = "reference4.cdl"
+        output_name = "output4.nc"
+
+        self.flatten_and_compare(input_name, output_name, reference_name)
