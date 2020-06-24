@@ -238,7 +238,6 @@ class Flattener:
         # Copy attributes
         new_var.setncatts(var.__dict__)
 
-        print(9999)
         if self.__copy_data:
             # Copy data
             new_var[:] = var[:]
