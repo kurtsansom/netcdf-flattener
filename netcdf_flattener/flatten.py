@@ -34,7 +34,10 @@ def flatten(input_ds, output_ds, lax_mode=False, _copy_data=True):
     :param input_ds: input netcdf4 dataset
     :param output_ds: output netcdf4 dataset
     :param lax_mode: if false (default), not resolving a reference halts the execution. If true, continue with warning.
-    :param _copy_data: if true (default), then all data arrays are copied from the input to the output dataset If false, then this does not happen. Use this option *only* if the data arrays of the flattened dataset are never to be accessed.
+    :param _copy_data: if true (default), then all data arrays are copied from the input to the output dataset.
+                       If false, then this does not happen.
+                       Use this option *only* if the data arrays of the flattened dataset are never to be accessed.
+                       If false then consider setting the fill mode for the output netcd4 dataset to "off" for improved performance.
     """
     Flattener(input_ds, lax_mode, _copy_data=_copy_data).flatten(output_ds)
 
