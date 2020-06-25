@@ -34,7 +34,9 @@ def flatten(input_ds, output_ds, lax_mode=False, _copy_data=True):
     :param input_ds: input netcdf4 dataset
     :param output_ds: output netcdf4 dataset
     :param lax_mode: if false (default), not resolving a reference halts the execution. If true, continue with warning.
-    :param _copy_data: if true (default), then all data arrays are copied from the input to the output dataset If false, then this does not happen. Use this option *only* if the data arrays of the flattened dataset are never to be accessed.
+    :param _copy_data: if true (default), then all data arrays are copied from the input to the output dataset.
+                       If false, then this does not happen.
+                       Use this option *only* if the data arrays of the flattened dataset are never to be accessed.
     """
     Flattener(input_ds, lax_mode, _copy_data=_copy_data).flatten(output_ds)
 
@@ -105,8 +107,9 @@ class Flattener:
         """Constructor. Initializes the Flattener class given the input file.
 
         :param input_ds: input netcdf dataset
-        :param lax_mode: if false (default), not resolving a reference halts the execution. If true, continue with warning. 
-        :param _copy_data: if true (default), then all data arrays are copied from the input to the output dataset If false, then this does not happen. Use this option *only* if the data arrays of the flattened dataset are never to be accessed.
+        :param lax_mode: if false (default), not resolving a reference halts the execution. If true, continue with warning.
+        :param _copy_data: if true (default), then all data arrays are copied from the input to the output dataset If false, then this does not happen.
+                           Use this option *only* if the data arrays of the flattened dataset are never to be accessed.
         """
 
         self.__attr_map_value = []
@@ -119,7 +122,7 @@ class Flattener:
         self.__lax_mode = lax_mode
 
         self.__copy_data = _copy_data
-        
+
         self.__input_file = input_ds
         self.__output_file = None
 
