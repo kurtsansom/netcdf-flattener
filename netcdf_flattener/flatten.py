@@ -28,14 +28,17 @@ import warnings
 from netCDF4 import Dataset
 
 
-def flatten(input_ds, output_ds, lax_mode=False):
+def flatten(input_ds, output_ds, lax_mode=False, _copy_data=True):
     """Flatten an input NetCDF dataset and write the result in an output NetCDF dataset.
 
     :param input_ds: input netcdf4 dataset
     :param output_ds: output netcdf4 dataset
     :param lax_mode: if false (default), not resolving a reference halts the execution. If true, continue with warning.
+    :param _copy_data: if true (default), then all data arrays are copied from the input to the output dataset.
+                       If false, then this does not happen.
+                       Use this option *only* if the data arrays of the flattened dataset are never to be accessed.
     """
-    Flattener(input_ds, lax_mode).flatten(output_ds)
+    Flattener(input_ds, lax_mode, _copy_data=_copy_data).flatten(output_ds)
 
 
 class Flattener:
@@ -100,11 +103,13 @@ class Flattener:
     __dim_map_name = "flattener_name_mapping_dimensions"
     __var_map_name = "flattener_name_mapping_variables"
 
-    def __init__(self, input_ds, lax_mode):
+    def __init__(self, input_ds, lax_mode, _copy_data=True):
         """Constructor. Initializes the Flattener class given the input file.
 
         :param input_ds: input netcdf dataset
         :param lax_mode: if false (default), not resolving a reference halts the execution. If true, continue with warning.
+        :param _copy_data: if true (default), then all data arrays are copied from the input to the output dataset If false, then this does not happen.
+                           Use this option *only* if the data arrays of the flattened dataset are never to be accessed.
         """
 
         self.__attr_map_value = []
@@ -115,6 +120,8 @@ class Flattener:
         self.__var_map = dict()
 
         self.__lax_mode = lax_mode
+
+        self.__copy_data = _copy_data
 
         self.__input_file = input_ds
         self.__output_file = None
@@ -234,8 +241,9 @@ class Flattener:
         # Copy attributes
         new_var.setncatts(var.__dict__)
 
-        # Copy data
-        new_var[:] = var[:]
+        if self.__copy_data:
+            # Copy data
+            new_var[:] = var[:]
 
         # Store new name in dict for resolving references later
         self.__var_map[self.pathname(var.group(), var.name)] = new_name
