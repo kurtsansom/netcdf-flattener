@@ -36,7 +36,7 @@ def walktree(top):
         for children in walktree(value):
             yield children
 
-def correct_data(self, _copy_data, variable_in, variable_out):
+def assert_expected_data(self, _copy_data, variable_in, variable_out):
     if _copy_data:
         self.assertEqual(variable_in.shape, variable_out.shape)
         self.assertTrue(
@@ -64,6 +64,9 @@ class Test(BaseTest):
     def test_flatten_copy_data(self):
         """Test of _copy_data functionality.
 
+        Flatten input file 'input1.cdl' with _copy_data True/False,
+        checking that the data is copied/not copied.
+
         """
         input_name = "input1.cdl"
         output_name = "output1.nc"
@@ -82,15 +85,17 @@ class Test(BaseTest):
         # Run flattening script
         print("Flatten '{}' in new file '{}'".format(input_nc, output_nc))
 
-        # Run flattener and expect to a Reference Exception
+        input_ds = Dataset(input_nc, 'r')
+
+        # Run flattener with _copy_data True and False
         for _copy_data in (True, False):        
-            input_ds = Dataset(input_nc, 'r')
             output_ds = Dataset(output_nc, 'w', format='NETCDF4')
             flatten(input_ds, output_ds, _copy_data=_copy_data)
     
             for key, variable_in in input_ds.variables.items():
                 variable_out = output_ds.variables[key]
-                correct_data(self, _copy_data, variable_in, variable_out)
+                assert_expected_data(self, _copy_data, variable_in,
+                                     variable_out)
                     
             for children in walktree(input_ds):
                 for child in children:
@@ -98,8 +103,9 @@ class Test(BaseTest):
                         path = variable_in.group().path
                         flat_key = '#'.join(path.split('/')[1:] + [key])
                         variable_out = output_ds.variables[flat_key]
-                        correct_data(self, _copy_data, variable_in,
-                                     variable_out)
+                        assert_expected_data(self, _copy_data,
+                                             variable_in, variable_out)
                         
-            input_ds.close()
             output_ds.close()
+
+        input_ds.close()
