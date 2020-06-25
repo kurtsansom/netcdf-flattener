@@ -87,7 +87,7 @@ class Test(BaseTest):
 
         input_ds = Dataset(input_nc, 'r')
 
-        # Run flattener with _copy_data True and False
+        # Run flattener with _copy_data True/False
         for _copy_data in (True, False):        
             output_ds = Dataset(output_nc, 'w', format='NETCDF4')
             flatten(input_ds, output_ds, _copy_data=_copy_data)
