@@ -1,42 +1,42 @@
 netcdf output5 {
 dimensions:
-	group1\#lat = 5 ;
-	group1\#lon = 8 ;
-	group1\#time = UNLIMITED ; // (6 currently)
+	group1__lat = 5 ;
+	group1__lon = 8 ;
+	group1__time = UNLIMITED ; // (6 currently)
 variables:
-	double group1\#lat(group1\#lat) ;
-		group1\#lat:units = "degrees_north" ;
-		group1\#lat:standard_name = "latitude" ;
-	double group1\#lon(group1\#lon) ;
-		group1\#lon:units = "degrees_east" ;
-		group1\#lon:standard_name = "longitude" ;
-	double group1\#time(group1\#time) ;
-		group1\#time:units = "days since 2018-12-01" ;
-		group1\#time:standard_name = "time" ;
-	double group1\#q1(group1\#time, group1\#lat, group1\#lon) ;
-		group1\#q1:standard_name = "specific_humidity" ;
-		group1\#q1:units = "1" ;
-	double group1\#q2(group1\#time, group1\#lat, group1\#lon) ;
-		group1\#q2:standard_name = "specific_humidity" ;
-		group1\#q2:units = "1" ;
-	double group1\#q3(group1\#time, group1\#lat, group1\#lon) ;
-		group1\#q3:standard_name = "specific_humidity" ;
-		group1\#q3:units = "1" ;
+	double group1__lat(group1__lat) ;
+		group1__lat:units = "degrees_north" ;
+		group1__lat:standard_name = "latitude" ;
+	double group1__lon(group1__lon) ;
+		group1__lon:units = "degrees_east" ;
+		group1__lon:standard_name = "longitude" ;
+	double group1__time(group1__time) ;
+		group1__time:units = "days since 2018-12-01" ;
+		group1__time:standard_name = "time" ;
+	double group1__q1(group1__time, group1__lat, group1__lon) ;
+		group1__q1:standard_name = "specific_humidity" ;
+		group1__q1:units = "1" ;
+	double group1__q2(group1__time, group1__lat, group1__lon) ;
+		group1__q2:standard_name = "specific_humidity" ;
+		group1__q2:units = "1" ;
+	double group1__q3(group1__time, group1__lat, group1__lon) ;
+		group1__q3:standard_name = "specific_humidity" ;
+		group1__q3:units = "1" ;
 
 // global attributes:
 		:Conventions = "CF-1.8" ;
 		:flattener_name_mapping_attributes = "Conventions: /Conventions" ;
-		string :flattener_name_mapping_dimensions = "group1#lat: /group1/lat", "group1#lon: /group1/lon", "group1#time: /group1/time" ;
-		string :flattener_name_mapping_variables = "group1#lat: /group1/lat", "group1#lon: /group1/lon", "group1#time: /group1/time", "group1#q1: /group1/q1", "group1#q2: /group1/q2", "group1#q3: /group1/q3" ;
+		string :flattener_name_mapping_dimensions = "group1__lat: /group1/lat", "group1__lon: /group1/lon", "group1__time: /group1/time" ;
+		string :flattener_name_mapping_variables = "group1__lat: /group1/lat", "group1__lon: /group1/lon", "group1__time: /group1/time", "group1__q1: /group1/q1", "group1__q2: /group1/q2", "group1__q3: /group1/q3" ;
 data:
 
- group1\#lat = -75, -45, 0, 45, 75 ;
+ group1__lat = -75, -45, 0, 45, 75 ;
 
- group1\#lon = 22.5, 67.5, 112.5, 157.5, 202.5, 247.5, 292.5, 337.5 ;
+ group1__lon = 22.5, 67.5, 112.5, 157.5, 202.5, 247.5, 292.5, 337.5 ;
 
- group1\#time = 31, 32, 33, 34, 35, 36 ;
+ group1__time = 31, 32, 33, 34, 35, 36 ;
 
- group1\#q1 =
+ group1__q1 =
   0.007, 0.034, 0.003, 0.014, 0.018, 0.037, 0.024, 0.029,
   0.023, 0.036, 0.045, 0.062, 0.046, 0.073, 0.006, 0.066,
   0.11, 0.131, 0.124, 0.146, 0.087, 0.103, 0.057, 0.011,
@@ -68,7 +68,7 @@ data:
   4.029, 4.059, 4.039, 4.07, 4.058, 4.072, 4.009, 4.017,
   4.006, 4.036, 4.019, 4.035, 4.018, 4.037, 4.034, 4.013 ;
 
- group1\#q2 =
+ group1__q2 =
   0.007, 0.034, 0.003, 0.014, 0.018, 0.037, 0.024, 0.029,
   0.023, 0.036, 0.045, 0.062, 0.046, 0.073, 0.006, 0.066,
   0.11, 0.131, 0.124, 0.146, 0.087, 0.103, 0.057, 0.011,
@@ -100,7 +100,7 @@ data:
   4.029, 4.059, 4.039, 4.07, 4.058, 4.072, 4.009, 4.017,
   4.006, 4.036, 4.019, 4.035, 4.018, 4.037, 4.034, 4.013 ;
 
- group1\#q3 =
+ group1__q3 =
   0.007, 0.034, 0.003, 0.014, 0.018, 0.037, 0.024, 0.029,
   0.023, 0.036, 0.045, 0.062, 0.046, 0.073, 0.006, 0.066,
   0.11, 0.131, 0.124, 0.146, 0.087, 0.103, 0.057, 0.011,

@@ -55,7 +55,7 @@ class _Flattener:
     """
     __max_name_len = 256
     __default_separator = '/'
-    __new_separator = '#'
+    __new_separator = '__'
     __pathname_format = "{}/{}"
     __mapping_str_format = "{}: {}"
     __ref_not_found_error = "REF_NOT_FOUND"
