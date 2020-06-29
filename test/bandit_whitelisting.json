@@ -238,5 +238,19 @@
       "test_id": "B101",
       "test_name": "assert_used"
     }
+    {
+      "code": "81         print(\"Generate NetCDF file '{}' from input CDL '{}'\".format(input_nc, input_cdl))\n82         subprocess.call([\"ncgen\", \"-o\", input_nc, input_cdl])\n83 \n",
+      "filename": "./test/test_flatten.py",
+      "issue_confidence": "HIGH",
+      "issue_severity": "LOW",
+      "issue_text": "Starting a process with a partial executable path",
+      "line_number": 82,
+      "line_range": [
+        82
+      ],
+      "more_info": "https://bandit.readthedocs.io/en/latest/plugins/b607_start_process_with_partial_path.html",
+      "test_id": "B607",
+      "test_name": "start_process_with_partial_path"
+    }  
   ]
 }

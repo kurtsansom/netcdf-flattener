@@ -78,8 +78,7 @@ class Test(BaseTest):
         output_nc = test_data_path / output_name
 
         # Generate NetCDF from input CDL
-        print("Generate NetCDF file '{}' from input CDL '{}'".format(
-            input_nc, input_cdl))
+        print("Generate NetCDF file '{}' from input CDL '{}'".format(input_nc, input_cdl))
         subprocess.call(["ncgen", "-o", input_nc, input_cdl])
 
         # Run flattening script
