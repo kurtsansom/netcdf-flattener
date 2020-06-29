@@ -10,17 +10,17 @@ This document describes the content of the netcdf_flattener module.
 API usage
 ---------
 
-.. autofunction:: flatten.flatten
+.. autofunction:: netcdf_flattener.flatten
 
 Exception class
 ---------------
 
-.. autoclass:: flatten.ReferenceException
+.. autoclass:: netcdf_flattener.ReferenceException
 
 Utility class
 -------------
 
-.. autoclass:: flatten.Flattener
+.. autoclass:: netcdf_flattener._Flattener
    :members:
 
 

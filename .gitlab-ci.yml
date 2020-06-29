@@ -3,6 +3,7 @@ stages:
   - test
   - build
   - deploy
+  - doc
 
 setup:
   stage: setup
@@ -59,7 +60,7 @@ build_wheel:
       - dist/netcdf_flattener-*.whl
 
 build_doc:
-  stage: build
+  stage: doc
   tags:
     - ads::docker
   before_script:
@@ -79,5 +80,5 @@ deploy:
   before_script:
     - source ../venv/bin/activate
   script:
-    - python3 -m pip install dist/netcdf_flattener-*.whl
+    - python3 -m pip install --upgrade --force-reinstall dist/netcdf_flattener-*.whl
     - python3 -c "import netcdf_flattener"

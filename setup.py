@@ -25,9 +25,11 @@ import setuptools
 with open("README.md", "r") as fh:
     long_description = fh.read()
 
+from netcdf_flattener import __version__
+
 setuptools.setup(
      name='netcdf-flattener',  
-     version='1.0.1',
+     version=__version__,
      author="Guillaume Obrecht",
      author_email="guillaume.obrecht@c-ssystems.de",
      description="The NetCDF-flattener package",

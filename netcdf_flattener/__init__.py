@@ -20,4 +20,6 @@ specific language governing permissions and limitations
 under the License.
 """
 
-from .flatten import flatten, ReferenceException
+__version__ = "1.0.1"
+
+from .flatten import flatten, ReferenceException, _Flattener
