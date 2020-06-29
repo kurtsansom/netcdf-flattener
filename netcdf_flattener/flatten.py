@@ -38,10 +38,10 @@ def flatten(input_ds, output_ds, lax_mode=False, _copy_data=True):
                        If false, then this does not happen.
                        Use this option *only* if the data arrays of the flattened dataset are never to be accessed.
     """
-    Flattener(input_ds, lax_mode, _copy_data=_copy_data).flatten(output_ds)
+    _Flattener(input_ds, lax_mode, _copy_data=_copy_data).flatten(output_ds)
 
 
-class Flattener:
+class _Flattener:
     """Utility class contained the input file, the output file being flattened, and all the logic of the flattening
     process.
     """
