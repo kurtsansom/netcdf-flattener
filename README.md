@@ -16,6 +16,16 @@ with warning, specify the `lax_mode` parameter:
 
     netcdf_flattener.flatten(input_dataset, output_dataset, lax_mode=True)
 
+For copying variables that would otherwise be larger than the available memory, the `copy_slices` parameter allows to 
+specify slices to be used when copying the variable. They are specified per variable in a dictionary. The slicing shape 
+is either `None` for using a default slice value, or a custom slicing shape in the form of a tuple of the same dimension 
+as the variable. If a variable from the Dataset is not contained in the dict, it will not be sliced and copied normally.
+
+Slice shapes should be small enough to fit in memory, but not too small larges loops on small slice can degrade 
+performances drastically. Typically, slices of size in the order of 10^6 to 10^8 are suitable. 
+
+    netcdf_flattener.flatten(input_dataset, output_dataset, copy_slices={"/grp1/var1": (1000,1000,500,), "/grp1/var3": None})
+
 ## Deployment
 
 Install the build dependencies:

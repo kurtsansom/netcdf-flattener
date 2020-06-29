@@ -28,8 +28,11 @@ import warnings
 from netCDF4 import Dataset
 
 
-def flatten(input_ds, output_ds, lax_mode=False, _copy_data=True):
+def flatten(input_ds, output_ds, lax_mode=False, _copy_data=True, copy_slices=None):
     """Flatten an input NetCDF dataset and write the result in an output NetCDF dataset.
+
+    For variable that are too big to fit in memory, the optional "copy_slices" input allows to copy some or all of the
+    variables in slices.
 
     :param input_ds: input netcdf4 dataset
     :param output_ds: output netcdf4 dataset
@@ -37,8 +40,13 @@ def flatten(input_ds, output_ds, lax_mode=False, _copy_data=True):
     :param _copy_data: if true (default), then all data arrays are copied from the input to the output dataset.
                        If false, then this does not happen.
                        Use this option *only* if the data arrays of the flattened dataset are never to be accessed.
+    :param copy_slices: dictionary containing variable_name: shape pairs, where variable_name is the path to the
+        variable name in the original Dataset (for instance /group1/group2/my_variable), and shape is either None for
+        using default slice value, or a custom slicing shap in the form of a tuple of the same dimension as the variable
+        (for instance (1000,2000,1500,) for a 3-dimensional variable). If a variable from the Dataset is not contained
+        in the dict, it will not be sliced and copied normally.
     """
-    _Flattener(input_ds, lax_mode, _copy_data=_copy_data).flatten(output_ds)
+    _Flattener(input_ds, lax_mode, _copy_data=_copy_data, copy_slices=copy_slices).flatten(output_ds)
 
 
 class _Flattener:
@@ -51,6 +59,7 @@ class _Flattener:
     __pathname_format = "{}/{}"
     __mapping_str_format = "{}: {}"
     __ref_not_found_error = "REF_NOT_FOUND"
+    __default_copy_slice_size = 200000000
 
     # attributes in which to look for references to variables, and the format of these references:
     # - 0: String attributes whose value is a blank separated list of variable names: "var1 var2
@@ -103,13 +112,19 @@ class _Flattener:
     __dim_map_name = "flattener_name_mapping_dimensions"
     __var_map_name = "flattener_name_mapping_variables"
 
-    def __init__(self, input_ds, lax_mode, _copy_data=True):
+    def __init__(self, input_ds, lax_mode, _copy_data=True, copy_slices=None):
         """Constructor. Initializes the Flattener class given the input file.
 
         :param input_ds: input netcdf dataset
         :param lax_mode: if false (default), not resolving a reference halts the execution. If true, continue with warning.
-        :param _copy_data: if true (default), then all data arrays are copied from the input to the output dataset If false, then this does not happen.
+        :param _copy_data: if true (default), then all data arrays are copied from the input to the output dataset
+                           If false, then this does not happen.
                            Use this option *only* if the data arrays of the flattened dataset are never to be accessed.
+        :param copy_slices: dictionary containing variable_name: shape pairs, where variable_name is the path to the
+            variable name in the original Dataset (for instance /group1/group2/my_variable), and shape is either None
+            for using default slice value, or a custom slicing shape in the form of a tuple of the same dimension as the
+            variable (for instance (1000,2000,1500,) for a 3-dimensional variable). If a variable from the Dataset is
+            not contained in the dict, it will not be sliced and copied normally.
         """
 
         self.__attr_map_value = []
@@ -122,6 +137,7 @@ class _Flattener:
         self.__lax_mode = lax_mode
 
         self.__copy_data = _copy_data
+        self.__copy_slices = copy_slices
 
         self.__input_file = input_ds
         self.__output_file = None
@@ -233,17 +249,39 @@ class _Flattener:
         new_dims = list(map(lambda x: self.__dim_map[self.pathname(x.group(), x.name)], var.get_dims()))
 
         # Write variable
-        # TODO check all options
-        new_var = self.__output_file.createVariable(new_name, var.dtype, new_dims, zlib=False, complevel=4,
-                                                    shuffle=True, fletcher32=False, contiguous=False, chunksizes=None,
-                                                    endian='native', least_significant_digit=None, fill_value=None)
+        fullname = self.pathname(var.group(), var.name)
+        print("create variable {} from {}".format(new_name, fullname))
+
+        new_var = self.__output_file.createVariable(
+            new_name,
+            var.dtype,
+            new_dims,
+            zlib=False,
+            complevel=4,
+            shuffle=True,
+            fletcher32=False,
+            contiguous=var.chunking() == "contiguous",
+            chunksizes=var.chunking() if var.chunking() != "contiguous" else None,
+            endian=var.endian(),
+            least_significant_digit=None,
+            fill_value=None)
+
+        if self.__copy_data:
+            # Find out slice method for variable and copy data
+            if self.__copy_slices is None or fullname not in self.__copy_slices:
+                # Copy data as a whole
+                new_var[:] = var[:]
+            elif self.__copy_slices[fullname] is None:
+                # Copy with default slice size
+                copy_slice = tuple(self.__default_copy_slice_size // len(var.shape) for _ in range(len(var.shape)))
+                self.copy_var_by_slices(new_var, var, copy_slice)
+            else:
+                # Copy in slices
+                copy_slice = self.__copy_slices[fullname]
+                self.copy_var_by_slices(new_var, var, copy_slice)
 
         # Copy attributes
         new_var.setncatts(var.__dict__)
-
-        if self.__copy_data:
-            # Copy data
-            new_var[:] = var[:]
 
         # Store new name in dict for resolving references later
         self.__var_map[self.pathname(var.group(), var.name)] = new_name
@@ -258,6 +296,58 @@ class _Flattener:
         self.resolve_references(new_var, var, search_dim=False)
         # - references to dims/vars in cell_methods
         self.resolve_references_cell_methods(new_var, var)
+
+    def increment_pos(self, pos, dim, copy_slice_shape, var_shape):
+        """Increment position vector in a variable along a dimension by the matching slice length along than dimension.
+        If end of the dimension is reached, recursively increment the next dimensions until a valid position is found.
+
+        :param pos: current position
+        :param dim: dimension to be incremented
+        :param copy_slice_shape: shape of the slice
+        :param var_shape: shape of the variable
+        :return True if a valid position is found within the variable, False otherwise
+        """
+        # Try to increment dimension
+        pos[dim] += copy_slice_shape[dim]
+
+        # Test new position
+        dim_end_reached = pos[dim] > var_shape[dim]
+        var_end_reached = (dim + 1) >= len(copy_slice_shape)
+
+        # End of this dimension not reached yet
+        if not dim_end_reached:
+            return True
+        # End of this dimension reached. Reset to 0 and try increment next one recursively
+        elif dim_end_reached and not var_end_reached:
+            pos[:dim + 1] = [0 for j in range(dim + 1)]
+            return self.increment_pos(pos, dim + 1, copy_slice_shape, var_shape)
+        # End of this dimension reached, and no dimension to increment. Finish.
+        else:
+            return False
+
+    def copy_var_by_slices(self, new_var, old_var, copy_slice_shape):
+        """Copy the data of a variable to a new one by slice.
+
+        :param new_var: new variable where to copy data
+        :param old_var: variable where data should be copied from
+        :param copy_slice_shape: shape of the slice
+        """
+        print("   copying data of {} in {} slices".format(old_var.name, copy_slice_shape))
+
+        # Initial position vector
+        pos = [0 for _ in range(len(copy_slice_shape))]
+
+        # Copy in slices until end reached
+        var_end_reached = False
+        while not var_end_reached:
+            # Create current slice
+            current_slice = tuple(slice(pos[dim_i], min(old_var.shape[dim_i], pos[dim_i] + dim_l)) for dim_i, dim_l in enumerate(copy_slice_shape))
+
+            # Copy data in slice
+            new_var[current_slice] = old_var[current_slice]
+
+            # Get next position
+            var_end_reached = not self.increment_pos(pos, 0, copy_slice_shape, old_var.shape)
 
     def resolve_reference(self, orig_ref, orig_var, search_dim, is_coordinate_variable=False):
         """Resolve the absolute path to a coordinate variable within the group structure.
