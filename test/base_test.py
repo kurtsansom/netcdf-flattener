@@ -60,7 +60,8 @@ class BaseTest(TestCase):
 
     test_data_folder = "data"
 
-    def flatten_and_compare(self, input_name, output_name, reference_name, lax_mode=False, expect_exception=False):
+    def flatten_and_compare(self, input_name, output_name, reference_name, lax_mode=False, expect_exception=False,
+                            copy_slices=None):
         """From input CDL, generate a NetCDF file, flatten it and compare its content to a reference CDL
 
         :param input_name: pathname to input CDL file
@@ -68,6 +69,7 @@ class BaseTest(TestCase):
         :param reference_name: reference CDL to use to validate flattened CDL
         :param lax_mode: false (default) for halting when reference not resolved, true for warnings
         :param expect_exception: if true, excepts the flattener to raise a ReferenceException
+        :param copy_slices: "copy_slices" argument to pass on to API
         """
         # Compose full file names
         test_data_path = Path(Path(__file__)).parent / self.test_data_folder
@@ -88,7 +90,7 @@ class BaseTest(TestCase):
             with self.assertRaises(ReferenceException) as context:
                 input_ds = Dataset(input_nc)
                 output_ds = Dataset(output_nc, 'w', format='NETCDF4')
-                flatten(input_ds, output_ds, lax_mode=lax_mode)
+                flatten(input_ds, output_ds, lax_mode=lax_mode, copy_slices=copy_slices)
             print("Got exception as expected: {}". format(context.exception))
             input_ds.close()
             output_ds.close()
@@ -98,7 +100,7 @@ class BaseTest(TestCase):
         else:
             input_ds = Dataset(input_nc)
             output_ds = Dataset(output_nc, 'w', format='NETCDF4')
-            output = flatten(input_ds, output_ds, lax_mode=lax_mode)
+            output = flatten(input_ds, output_ds, lax_mode=lax_mode, copy_slices=copy_slices)
             input_ds.close()
             output_ds.close()
 
