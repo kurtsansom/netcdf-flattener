@@ -40,7 +40,7 @@ variables:
 	float grp1__pres2(z, y, x) ;
 		grp1__pres2:standard_name = "air_pressure_2" ;
 		grp1__pres2:units = "Pa" ;
-		grp1__pre2s:coordinates = "grp1__lat grp1__lon" ;
+		grp1__pres2:coordinates = "grp1__lat grp1__lon" ;
 		grp1__pres2:grid_mapping = "grp1__crsOSGB" ;
 	int grp1__crsOSGB ;
 		grp1__crsOSGB:grid_mapping_name = "transverse_mercator" ;

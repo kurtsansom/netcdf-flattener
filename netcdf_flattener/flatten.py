@@ -454,8 +454,7 @@ class _Flattener:
 
             # If found, create ref string
             if resolved_var is not None:
-                group_name = "" if resolved_var.group().parent is None else resolved_var.group().path
-                absolute_ref = self.__pathname_format.format(group_name, resolved_var.name)
+                absolute_ref = self.pathname(resolved_var.group(), resolved_var.name)
 
         if absolute_ref is None and attr.accept_standard_names:
             print("      coordinate reference to '{}' not resolved. "
@@ -498,7 +497,7 @@ class _Flattener:
         elt = current_group.dimensions[ref_split[-1]] if search_dim else current_group.variables[ref_split[-1]]
 
         # Get absolute reference
-        return self.__pathname_format.format(elt.group().path, elt.name)
+        return self.pathname(elt.group(), elt.name)
 
     def search_by_proximity(self, ref, current_group, search_dim, local_apex_reached, is_coordinate_variable):
         """Resolve the absolute path to a reference within the group structure, using search by proximity.
