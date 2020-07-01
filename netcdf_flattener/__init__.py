@@ -22,4 +22,5 @@ under the License.
 
 __version__ = "1.0.1"
 
-from .flatten import flatten, ReferenceException, _Flattener
+from .flatten import flatten, ReferenceException, _Flattener, _AttributeProperties, parse_var_attr, \
+    generate_var_attr_str

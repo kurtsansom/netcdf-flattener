@@ -17,12 +17,23 @@ Exception class
 
 .. autoclass:: netcdf_flattener.ReferenceException
 
-Utility class
--------------
+Flattener utility class
+-----------------------
 
 .. autoclass:: netcdf_flattener._Flattener
    :members:
 
+Attributes properties utility class
+-----------------------------------
+
+.. autoclass:: netcdf_flattener._AttributeProperties
+
+Utility methods for parsing attributes
+--------------------------------------
+
+.. autofunction:: netcdf_flattener.parse_var_attr
+
+.. autofunction:: netcdf_flattener.generate_var_attr_str
 
 Indices and tables
 ==================

@@ -53,12 +53,13 @@ def flatten(input_ds, output_ds, lax_mode=False, _copy_data=True, copy_slices=No
 
 def parse_var_attr(input_str):
     """Parse variable attribute of any form into a dict:
-       - 'time' -> OrderedDict([('time', [])])
-       - 'lat lon' -> OrderedDict([('lat', []), ('lon', [])])
-       - 'area: time volume: lat lon' -> OrderedDict([('area', ['time']), ('volume', ['lat', 'lon'])])
 
-       :param input_str: string to parse
-       :return: parsed string in an OrderedDict
+    * 'time' -> OrderedDict([('time', [])])
+    * 'lat lon' -> OrderedDict([('lat', []), ('lon', [])])
+    * 'area: time volume: lat lon' -> OrderedDict([('area', ['time']), ('volume', ['lat', 'lon'])])
+
+   :param input_str: string to parse
+   :return: parsed string in an OrderedDict
     """
 
     def subst(s):
@@ -103,7 +104,7 @@ def parse_var_attr(input_str):
 
 
 def generate_var_attr_str(d):
-    """"Re-generate the attribute string from a dictionary.
+    """Re-generate the attribute string from a dictionary.
 
     :param d: dictionary
     :return: valid attribute string
