@@ -111,6 +111,7 @@ class _Flattener:
     __attr_map_name = "flattener_name_mapping_attributes"
     __dim_map_name = "flattener_name_mapping_dimensions"
     __var_map_name = "flattener_name_mapping_variables"
+    __coordinate_name = "flattener_name_coordinate_variables"
 
     def __init__(self, input_ds, lax_mode, _copy_data=True, copy_slices=None):
         """Constructor. Initializes the Flattener class given the input file.
