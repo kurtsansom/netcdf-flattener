@@ -30,9 +30,9 @@ variables:
 		e3sm__e3sm_01__sic:long_name = "sea-ice concentration" ;
 		e3sm__e3sm_01__sic:standard_name = "sea_ice_area_fraction" ;
 		e3sm__e3sm_01__sic:units = "1" ;
-		e3sm__e3sm_01__sic:coordinates = "e3sm__time REF_NOT_FOUND:_wrong_var e3sm__lon" ;
-		e3sm__e3sm_01__sic:cell_measures = "area: REF_NOT_FOUND:_../wrong_group/time" ;
-		e3sm__e3sm_01__sic:sample_dimension = "REF_NOT_FOUND:_/e3sm/wrong_name" ;
+		e3sm__e3sm_01__sic:coordinates = "e3sm__time REF_NOT_FOUND_wrong_var e3sm__lon" ;
+		e3sm__e3sm_01__sic:cell_measures = "area: REF_NOT_FOUND_../wrong_group/time" ;
+		e3sm__e3sm_01__sic:sample_dimension = "REF_NOT_FOUND_/e3sm/wrong_name" ;
 
 // global attributes:
 		:Conventions = "CF-1.8" ;
