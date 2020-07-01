@@ -28,15 +28,20 @@ variables:
 		grp1__temp:coordinates = "grp1__lat grp1__lon" ;
 		grp1__temp:grid_mapping = "grp1__crsOSGB: x y grp1__crsWGS84: grp1__lat grp1__lon" ;
 	float grp1__temp2(z, y, x) ;
-		grp1__temp:standard_name = "air_temperature_2" ;
-		grp1__temp:units = "K" ;
-		grp1__temp:coordinates = "grp1__lat grp1__lon" ;
-		grp1__temp:grid_mapping = "rotated_latitude_longitude" ;
+		grp1__temp2:standard_name = "air_temperature_2" ;
+		grp1__temp2:units = "K" ;
+		grp1__temp2:coordinates = "grp1__lat grp1__lon" ;
+		grp1__temp2:grid_mapping = "grp1__crsOSGB" ;
 	float grp1__pres(z, y, x) ;
 		grp1__pres:standard_name = "air_pressure" ;
 		grp1__pres:units = "Pa" ;
 		grp1__pres:coordinates = "grp1__lat grp1__lon" ;
 		grp1__pres:grid_mapping = "grp1__crsOSGB: x y grp1__crsWGS84: grp1__lat grp1__lon" ;
+	float grp1__pres2(z, y, x) ;
+		grp1__pres2:standard_name = "air_pressure_2" ;
+		grp1__pres2:units = "Pa" ;
+		grp1__pre2s:coordinates = "grp1__lat grp1__lon" ;
+		grp1__pres2:grid_mapping = "grp1__crsOSGB" ;
 	int grp1__crsOSGB ;
 		grp1__crsOSGB:grid_mapping_name = "transverse_mercator" ;
 		grp1__crsOSGB:semi_major_axis = 6377563.396 ;
@@ -58,7 +63,7 @@ variables:
 		:Conventions = "CF-1.8" ;
 		:flattener_name_mapping_attributes = "Conventions: /Conventions" ;
 		string :flattener_name_mapping_dimensions = "z: /z", "y: /y", "x: /x" ;
-		string :flattener_name_mapping_variables = "x: /x", "y: /y", "z: /z", "grp1__lat: /grp1/lat", "grp1__lon: /grp1/lon", "grp1__temp: /grp1/temp", "grp1__pres: /grp1/pres", "grp1__crsOSGB: /grp1/crsOSGB", "grp1__crsWGS84: /grp1/crsWGS84" ;
+		string :flattener_name_mapping_variables = "x: /x", "y: /y", "z: /z", "grp1__lat: /grp1/lat", "grp1__lon: /grp1/lon", "grp1__temp: /grp1/temp", "grp1__temp2: /grp1/temp2", "grp1__pres: /grp1/pres", "grp1__pres2: /grp1/pres2", "grp1__crsOSGB: /grp1/crsOSGB", "grp1__crsWGS84: /grp1/crsWGS84" ;
 data:
 
  x = 1, 1, 1, 1, 1 ;
@@ -108,6 +113,20 @@ data:
   56, 92, 15, 74, 13 ;
 
  grp1__pres =
+  27, 33, 47, 82, 34,
+  57, 11, 58, 88, 80,
+  95, 66, 86, 59, 90,
+  49, 16, 83, 79, 54,
+  99, 61, 82, 23, 25,
+  84, 29, 45, 36, 27,
+  81, 19, 77, 47, 89,
+  7, 92, 13, 17, 15,
+  37, 85, 73, 83, 20,
+  29, 36, 35, 87, 60,
+  97, 9, 32, 73, 20,
+  16, 49, 40, 71, 85 ;
+
+ grp1__pres2 =
   27, 33, 47, 82, 34,
   57, 11, 58, 88, 80,
   95, 66, 86, 59, 90,

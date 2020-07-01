@@ -41,15 +41,20 @@ group: grp1 {
   		temp:coordinates = "lat lon" ;
   		temp:grid_mapping = "crsOSGB: x y crsWGS84: lat lon" ;
   	float temp2(z, y, x) ;
-  		temp:standard_name = "air_temperature_2" ;
-  		temp:units = "K" ;
-  		temp:coordinates = "lat lon" ;
-  		temp:grid_mapping = "rotated_latitude_longitude" ;
+  		temp2:standard_name = "air_temperature_2" ;
+  		temp2:units = "K" ;
+  		temp2:coordinates = "lat lon" ;
+  		temp2:grid_mapping = "crsOSGB" ;
   	float pres(z, y, x) ;
   		pres:standard_name = "air_pressure" ;
   		pres:units = "Pa" ;
   		pres:coordinates = "lat lon" ;
   		pres:grid_mapping = "/grp1/crsOSGB: ../x ../y crsWGS84: /grp1/lat /grp1/lon" ;
+  	float pres2(z, y, x) ;
+  		pres2:standard_name = "air_pressure_2" ;
+  		pres2:units = "Pa" ;
+  		pres2:coordinates = "lat lon" ;
+  		pres2:grid_mapping = "/grp1/crsOSGB" ;
   	int crsOSGB ;
   		crsOSGB:grid_mapping_name = "transverse_mercator" ;
   		crsOSGB:semi_major_axis = 6377563.396 ;
@@ -109,6 +114,20 @@ group: grp1 {
   56, 92, 15, 74, 13 ;
 
    pres =
+  27, 33, 47, 82, 34,
+  57, 11, 58, 88, 80,
+  95, 66, 86, 59, 90,
+  49, 16, 83, 79, 54,
+  99, 61, 82, 23, 25,
+  84, 29, 45, 36, 27,
+  81, 19, 77, 47, 89,
+  7, 92, 13, 17, 15,
+  37, 85, 73, 83, 20,
+  29, 36, 35, 87, 60,
+  97, 9, 32, 73, 20,
+  16, 49, 40, 71, 85 ;
+
+   pres2 =
   27, 33, 47, 82, 34,
   57, 11, 58, 88, 80,
   95, 66, 86, 59, 90,
