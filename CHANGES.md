@@ -6,6 +6,7 @@ All notable changes to this project will be documented in this file.
 - Issue #24: Allow copying large variables in slices
 - Issue #25: Centralize versioning in __init__.py file
 - Issue #25: Add contribution rules and MR template
+- Issue #27: Some coordinate variables lose assocation with data variables upon flattening
 - Issue #29: Replace `#` by `__` in flattened names for CF compliance
 
 ## 1.0.1
