@@ -24,7 +24,7 @@ from base_test import BaseTest
 
 
 class Test(BaseTest):
-    def test_cell_methods(self):
+    def test_grid_mapping(self):
         """Tests all forms of the grid_mapping attribute.
 
         Flatten input file 'input6.cdl' and compare to reference 'reference6.cdl'.

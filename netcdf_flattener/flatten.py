@@ -125,49 +125,50 @@ def generate_var_attr_str(d):
 class _AttributeProperties(Enum):
     """"Utility class containing the properties for each type of variable attribute, defining how contained references
     to dimensions and variables should be parsed and processed."""
-    # Name = (id, ref_to_dim, ref_to_var, resolve_key, resolve_value, stop_at_local_apex, accept_standard_names,
-    # limit_to_coordinates
-    ancillary_variables = (0, False, True, True, False, False, False, False)
-    bounds = (1, False, True, True, False, False, False, False)
-    cell_measures = (2, False, True, False, True, False, False, False)
-    climatology = (3, False, True, True, False, False, False, False)
-    coordinates = (4, False, True, True, False, True, False, False)
-    formula_terms = (5, False, True, False, True, False, False, False)
-    geometry = (6, False, True, True, False, False, False, False)
-    grid_mapping = (7, False, True, True, True, False, False, False)
-    interior_ring = (8, False, True, True, False, False, False, False)
-    node_coordinates = (9, False, True, True, False, False, False, False)
-    node_count = (10, False, True, True, False, False, False, False)
-    nodes = (11, False, True, True, False, False, False, False)
-    part_node_count = (12, False, True, True, False, False, False, False)
-    compress = (13, True, False, True, False, False, False, False)
-    instance_dimension = (14, True, False, True, False, False, False, False)
-    sample_dimension = (15, True, False, True, False, False, False, False)
-    cell_methods = (16, 2, 1, True, False, False, True, True)
+    # Name = (id, (ref_to_dim, ref_to_var, resolve_key, resolve_value, stop_at_local_apex, accept_standard_names,
+    # limit_to_coordinates))
+    ancillary_variables = (0, (False, True, True, False, False, False, False))
+    bounds = (1, (False, True, True, False, False, False, False))
+    cell_measures = (2, (False, True, False, True, False, False, False))
+    climatology = (3, (False, True, True, False, False, False, False))
+    coordinates = (4, (False, True, True, False, True, False, False))
+    formula_terms = (5, (False, True, False, True, False, False, False))
+    geometry = (6, (False, True, True, False, False, False, False))
+    grid_mapping = (7, (False, True, True, True, False, False, False))
+    interior_ring = (8, (False, True, True, False, False, False, False))
+    node_coordinates = (9, (False, True, True, False, False, False, False))
+    node_count = (10, (False, True, True, False, False, False, False))
+    nodes = (11, (False, True, True, False, False, False, False))
+    part_node_count = (12, (False, True, True, False, False, False, False))
+    compress = (13, (True, False, True, False, False, False, False))
+    instance_dimension = (14, (True, False, True, False, False, False, False))
+    sample_dimension = (15, (True, False, True, False, False, False, False))
+    cell_methods = (16, (2, 1, True, False, False, True, True))
 
-    def __init__(self, n, ref_to_dim, ref_to_var, resolve_key, resolve_value, stop_at_local_apex,
-                 accept_standard_names, limit_to_coordinates):
+    def __init__(self, n, props):
         """_AttributeProperties enum constructor
 
         :param n: enum id
-        :param ref_to_dim: True or integer if contains references to dimensions (highest int have priority)
-        :param ref_to_var: True or integer if contains references to variables (highest int have priority)
-        :param resolve_key: True if the 'keys' have to be resolved in 'key1: value1 key2: value2 value3' or 'key1 key2'
-        :param resolve_value:  True if the 'values' have to be resolved in 'key1: value1 key2: value2 value3'
-        :param stop_at_local_apex: True if upward research in the hierarchy has to stop at local apex
-        :param accept_standard_names: True if any standard name is valid in place of references (in which case no
-            exception is raised if a reference cannot be resolved, and the standard name is used in place)
-        :param limit_to_coordinates: True if references to variables are only resolved if present as well in the
-            'coordinates' attributes of the variable.
+        :param props: a tuple containing the attribute's properties (ref_to_dim, ref_to_var, resolve_key, resolve_value,
+            stop_at_local_apex, accept_standard_names, limit_to_coordinates):
+                * ref_to_dim: True or integer if contains references to dimensions (highest int have priority)
+                * ref_to_var: True or integer if contains references to variables (highest int have priority)
+                * resolve_key: True if 'keys' have to be resolved in 'key1: value1 key2: value2 value3' or 'key1 key2'
+                * resolve_value:  True if 'values' have to be resolved in 'key1: value1 key2: value2 value3'
+                * stop_at_local_apex: True if upward research in the hierarchy has to stop at local apex
+                * accept_standard_names: True if any standard name is valid in place of references (in which case no
+                  exception is raised if a reference cannot be resolved, and the standard name is used in place)
+                * limit_to_coordinates: True if references to variables are only resolved if present as well in
+                  the 'coordinates' attributes of the variable.
         """
         self.id = n
-        self.ref_to_dim = ref_to_dim
-        self.ref_to_var = ref_to_var
-        self.resolve_key = resolve_key
-        self.resolve_value = resolve_value
-        self.stop_at_local_apex = stop_at_local_apex
-        self.accept_standard_names = accept_standard_names
-        self.limit_to_coordinates = limit_to_coordinates
+        self.ref_to_dim = props[0]
+        self.ref_to_var = props[1]
+        self.resolve_key = props[2]
+        self.resolve_value = props[3]
+        self.stop_at_local_apex = props[4]
+        self.accept_standard_names = props[5]
+        self.limit_to_coordinates = props[6]
 
 
 class _Flattener:
@@ -464,10 +465,15 @@ class _Flattener:
             if resolved_var is not None:
                 absolute_ref = self.pathname(resolved_var.group(), resolved_var.name)
 
+        # Post-search checks and return result
+        return self.resolve_reference_post_processing(absolute_ref, orig_ref, orig_var, attr, ref_type, method)
+
+    def resolve_reference_post_processing(self, absolute_ref, orig_ref, orig_var, attr, ref_type, method):
+        """Post-processing operations after resolving reference
+        """
         # If not found and accept standard name, assume standard name
         if absolute_ref is None and attr.accept_standard_names:
-            print("      coordinate reference to '{}' not resolved. "
-                  "Assumed to be a standard name.".format(orig_ref))
+            print("      coordinate reference to '{}' not resolved. Assumed to be a standard name.".format(orig_ref))
             ref_type = "standard_name"
             absolute_ref = orig_ref
         # Else if not found, raise exception
@@ -480,10 +486,9 @@ class _Flattener:
 
         # If variables refs are limited to coordinate variable, additional check
         if ref_type == "variable" and attr.limit_to_coordinates \
-                and ("coordinates" not in orig_var.ncattrs() or ref not in orig_var.coordinates):
+                and ("coordinates" not in orig_var.ncattrs() or orig_ref not in orig_var.coordinates):
             print("      coordinate reference to '{}' is not a COORDINATE variable. "
                   "Assumed to be a standard name.".format(orig_ref))
-            ref_type = "standard_name"
             absolute_ref = orig_ref
 
         # Return result
