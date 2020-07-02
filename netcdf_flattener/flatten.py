@@ -64,12 +64,12 @@ def parse_var_attr(input_str):
 
     def subst(s):
         """substitute tokens for WORD and SEP (space or end of string)"""
-        return s.replace('WORD', r'[A-Za-z0-9_#/.]+').replace(
+        return s.replace('WORD', r'[A-Za-z0-9_#/.\(\)]+').replace(
             'SEP', r'(\s+|$)')
 
     # Regex for 'dict form': "k1: v1 v2 k2: v3"
     pat_value = subst('(?P<value>WORD)SEP')
-    pat_values = '({})+'.format(pat_value)
+    pat_values = '({})*'.format(pat_value)
     pat_mapping = (subst('(?P<mapping_name>WORD):SEP(?P<values>{})'.format(pat_values)))
     pat_mapping_list = '({})+'.format(pat_mapping)
 
@@ -91,7 +91,7 @@ def parse_var_attr(input_str):
         if list_match:
             for mapping in re.finditer(pat_list_item, list_match):
                 item = mapping.group('list_item')
-                out[item] = []
+                out[item] = None
         # Parse as a dict:
         else:
             mapping_list = m.group('mapping_list')
@@ -99,6 +99,8 @@ def parse_var_attr(input_str):
                 term = mapping.group('mapping_name')
                 values = [value.group('value') for value in re.finditer(pat_value, mapping.group('values'))]
                 out[term] = values
+    else:
+        raise ReferenceException("Error while parsing attribute value: '{}'".format(input_str))
 
     return out
 
@@ -111,8 +113,10 @@ def generate_var_attr_str(d):
     """
     parsed_list = []
     for k, v in d.items():
-        if not v:
+        if v is None:
             parsed_list.append(k)
+        elif not v:
+            parsed_list.append("{}:".format(k))
         else:
             parsed_list.append(k + ': ' + (' '.join(v)))
     return ' '.join(parsed_list)
@@ -121,27 +125,28 @@ def generate_var_attr_str(d):
 class _AttributeProperties(Enum):
     """"Utility class containing the properties for each type of variable attribute, defining how contained references
     to dimensions and variables should be parsed and processed."""
-    # Name = (id, ref_to_dim, ref_to_var, resolve_key, resolve_value, stop_at_local_apex, accept_standard_names
-    ancillary_variables = (0, False, True, True, False, False, False)
-    bounds = (1, False, True, True, False, False, False)
-    cell_measures = (2, False, True, False, True, False, False)
-    climatology = (3, False, True, True, False, False, False)
-    coordinates = (4, False, True, True, False, True, False)
-    formula_terms = (5, False, True, False, True, False, False)
-    geometry = (6, False, True, True, False, False, False)
-    grid_mapping = (7, False, True, True, True, False, False)
-    interior_ring = (8, False, True, True, False, False, False)
-    node_coordinates = (9, False, True, True, False, False, False)
-    node_count = (10, False, True, True, False, False, False)
-    nodes = (11, False, True, True, False, False, False)
-    part_node_count = (12, False, True, True, False, False, False)
-    compress = (13, True, False, True, False, False, False)
-    instance_dimension = (14, True, False, True, False, False, False)
-    sample_dimension = (15, True, False, True, False, False, False)
-    cell_methods = (16, 2, 1, True, False, False, True)
+    # Name = (id, ref_to_dim, ref_to_var, resolve_key, resolve_value, stop_at_local_apex, accept_standard_names,
+    # limit_to_coordinates
+    ancillary_variables = (0, False, True, True, False, False, False, False)
+    bounds = (1, False, True, True, False, False, False, False)
+    cell_measures = (2, False, True, False, True, False, False, False)
+    climatology = (3, False, True, True, False, False, False, False)
+    coordinates = (4, False, True, True, False, True, False, False)
+    formula_terms = (5, False, True, False, True, False, False, False)
+    geometry = (6, False, True, True, False, False, False, False)
+    grid_mapping = (7, False, True, True, True, False, False, False)
+    interior_ring = (8, False, True, True, False, False, False, False)
+    node_coordinates = (9, False, True, True, False, False, False, False)
+    node_count = (10, False, True, True, False, False, False, False)
+    nodes = (11, False, True, True, False, False, False, False)
+    part_node_count = (12, False, True, True, False, False, False, False)
+    compress = (13, True, False, True, False, False, False, False)
+    instance_dimension = (14, True, False, True, False, False, False, False)
+    sample_dimension = (15, True, False, True, False, False, False, False)
+    cell_methods = (16, 2, 1, True, False, False, True, True)
 
     def __init__(self, n, ref_to_dim, ref_to_var, resolve_key, resolve_value, stop_at_local_apex,
-                 accept_standard_names):
+                 accept_standard_names, limit_to_coordinates):
         """_AttributeProperties enum constructor
 
         :param n: enum id
@@ -152,6 +157,8 @@ class _AttributeProperties(Enum):
         :param stop_at_local_apex: True if upward research in the hierarchy has to stop at local apex
         :param accept_standard_names: True if any standard name is valid in place of references (in which case no
             exception is raised if a reference cannot be resolved, and the standard name is used in place)
+        :param limit_to_coordinates: True if references to variables are only resolved if present as well in the
+            'coordinates' attributes of the variable.
         """
         self.id = n
         self.ref_to_dim = ref_to_dim
@@ -160,6 +167,7 @@ class _AttributeProperties(Enum):
         self.resolve_value = resolve_value
         self.stop_at_local_apex = stop_at_local_apex
         self.accept_standard_names = accept_standard_names
+        self.limit_to_coordinates = limit_to_coordinates
 
 
 class _Flattener:
@@ -414,10 +422,10 @@ class _Flattener:
         ref_type = ""
 
         # Resolve first as dim (True), or var (False)
-        resolve_dim_or_var = attr.ref_to_dim
+        resolve_dim_or_var = attr.ref_to_dim > attr.ref_to_var
 
         # Resolve var (resp. dim) if resolving as dim (resp. var) failed
-        resolve_alt = attr.ref_to_dim and attr.ref_to_var
+        resolve_alt = (attr.ref_to_dim and attr.ref_to_var)
 
         # Reference is already given by absolute path
         if ref.startswith(self.__default_separator):
@@ -429,27 +437,26 @@ class _Flattener:
             method = " relative"
 
             # First tentative as dim OR var
-            ref_type = "variable "
+            ref_type = "dimension" if resolve_dim_or_var else "variable"
             absolute_ref = self.search_by_relative_path(orig_ref, orig_var.group(), resolve_dim_or_var)
 
             # If failed and alternative possible, second tentative
             if absolute_ref is None and resolve_alt:
-                ref_type = "dimension "
+                ref_type = "dimension" if not resolve_dim_or_var else "variable"
                 absolute_ref = self.search_by_relative_path(orig_ref, orig_var.group(), not resolve_dim_or_var)
 
         # Reference is to be searched by proximity
         else:
             method = " proximity"
-            resolved_var = None
 
             # First tentative as dim OR var
-            ref_type = "variable "
+            ref_type = "dimension" if resolve_dim_or_var else "variable"
             resolved_var = self.search_by_proximity(ref, orig_var.group(), resolve_dim_or_var, False,
                                                     attr.stop_at_local_apex)
 
             # If failed and alternative possible, second tentative
             if resolved_var is None and resolve_alt:
-                ref_type = "dimension "
+                ref_type = "dimension" if not resolve_dim_or_var else "variable"
                 resolved_var = self.search_by_proximity(ref, orig_var.group(), not resolve_dim_or_var, False,
                                                         attr.stop_at_local_apex)
 
@@ -457,16 +464,27 @@ class _Flattener:
             if resolved_var is not None:
                 absolute_ref = self.pathname(resolved_var.group(), resolved_var.name)
 
+        # If not found and accept standard name, assume standard name
         if absolute_ref is None and attr.accept_standard_names:
             print("      coordinate reference to '{}' not resolved. "
                   "Assumed to be a standard name.".format(orig_ref))
+            ref_type = "standard_name"
             absolute_ref = orig_ref
+        # Else if not found, raise exception
         elif absolute_ref is None:
             absolute_ref = self.handle_reference_error(orig_ref, orig_var.group().path)
-        # Could resolve reference
+        # If found:
         else:
             print("      {} coordinate reference to {} '{}' resolved as '{}'"
                   .format(method, ref_type, orig_ref, absolute_ref))
+
+        # If variables refs are limited to coordinate variable, additional check
+        if ref_type == "variable" and attr.limit_to_coordinates \
+                and ("coordinates" not in orig_var.ncattrs() or ref not in orig_var.coordinates):
+            print("      coordinate reference to '{}' is not a COORDINATE variable. "
+                  "Assumed to be a standard name.".format(orig_ref))
+            ref_type = "standard_name"
+            absolute_ref = orig_ref
 
         # Return result
         return absolute_ref
@@ -580,7 +598,7 @@ class _Flattener:
                     new_k = self.resolve_reference(k, old_var, attr) if attr.resolve_key else k
 
                     new_v = ([self.resolve_reference(x, old_var, attr) for x in parsed_attr[k]]
-                             if attr.resolve_value else parsed_attr[k])
+                             if attr.resolve_value and parsed_attr[k] is not None else parsed_attr[k])
 
                     resolved_parsed_attr[new_k] = new_v
 
@@ -605,7 +623,7 @@ class _Flattener:
                     new_k = self.adapt_name(k, attr) if attr.resolve_key else k
 
                     new_v = ([self.adapt_name(x, attr) for x in parsed_attr[k]]
-                             if attr.resolve_value else parsed_attr[k])
+                             if attr.resolve_value and parsed_attr[k] is not None else parsed_attr[k])
 
                     adapted_parsed_attr[new_k] = new_v
 
