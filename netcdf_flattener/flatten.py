@@ -20,10 +20,12 @@ specific language governing permissions and limitations
 under the License.
 """
 
+import collections
 import hashlib
 import os
 import re
 import warnings
+from enum import Enum
 
 from netCDF4 import Dataset
 
@@ -49,6 +51,124 @@ def flatten(input_ds, output_ds, lax_mode=False, _copy_data=True, copy_slices=No
     _Flattener(input_ds, lax_mode, _copy_data=_copy_data, copy_slices=copy_slices).flatten(output_ds)
 
 
+def parse_var_attr(input_str):
+    """Parse variable attribute of any form into a dict:
+
+    * 'time' -> OrderedDict([('time', [])])
+    * 'lat lon' -> OrderedDict([('lat', []), ('lon', [])])
+    * 'area: time volume: lat lon' -> OrderedDict([('area', ['time']), ('volume', ['lat', 'lon'])])
+
+   :param input_str: string to parse
+   :return: parsed string in an OrderedDict
+    """
+
+    def subst(s):
+        """substitute tokens for WORD and SEP (space or end of string)"""
+        return s.replace('WORD', r'[A-Za-z0-9_#/.\(\)]+').replace(
+            'SEP', r'(\s+|$)')
+
+    # Regex for 'dict form': "k1: v1 v2 k2: v3"
+    pat_value = subst('(?P<value>WORD)SEP')
+    pat_values = '({})*'.format(pat_value)
+    pat_mapping = (subst('(?P<mapping_name>WORD):SEP(?P<values>{})'.format(pat_values)))
+    pat_mapping_list = '({})+'.format(pat_mapping)
+
+    # Regex for 'list form': "v1 v2 v3" (including single-item form)
+    pat_list_item = (subst('(?P<list_item>WORD)SEP'))
+    pat_list = '({})+'.format(pat_list_item)
+
+    # Regex for any form:
+    pat_all = (subst('((?P<list>{})|(?P<mapping_list>{}))$'.format(pat_list, pat_mapping_list)))
+
+    m = re.match(pat_all, input_str)
+
+    # Output is always a dict. If input form is a list, dict values are set as empty lists
+    out = collections.OrderedDict()
+
+    if m is not None:
+        list_match = m.group('list')
+        # Parse as a list
+        if list_match:
+            for mapping in re.finditer(pat_list_item, list_match):
+                item = mapping.group('list_item')
+                out[item] = None
+        # Parse as a dict:
+        else:
+            mapping_list = m.group('mapping_list')
+            for mapping in re.finditer(pat_mapping, mapping_list):
+                term = mapping.group('mapping_name')
+                values = [value.group('value') for value in re.finditer(pat_value, mapping.group('values'))]
+                out[term] = values
+    else:
+        raise ReferenceException("Error while parsing attribute value: '{}'".format(input_str))
+
+    return out
+
+
+def generate_var_attr_str(d):
+    """Re-generate the attribute string from a dictionary.
+
+    :param d: dictionary
+    :return: valid attribute string
+    """
+    parsed_list = []
+    for k, v in d.items():
+        if v is None:
+            parsed_list.append(k)
+        elif not v:
+            parsed_list.append("{}:".format(k))
+        else:
+            parsed_list.append(k + ': ' + (' '.join(v)))
+    return ' '.join(parsed_list)
+
+
+class _AttributeProperties(Enum):
+    """"Utility class containing the properties for each type of variable attribute, defining how contained references
+    to dimensions and variables should be parsed and processed."""
+    ancillary_variables = (0, (False, True, True, False, False, False, False))
+    bounds = (1, (False, True, True, False, False, False, False))
+    cell_measures = (2, (False, True, False, True, False, False, False))
+    climatology = (3, (False, True, True, False, False, False, False))
+    coordinates = (4, (False, True, True, False, True, False, False))
+    formula_terms = (5, (False, True, False, True, False, False, False))
+    geometry = (6, (False, True, True, False, False, False, False))
+    grid_mapping = (7, (False, True, True, True, False, False, False))
+    interior_ring = (8, (False, True, True, False, False, False, False))
+    node_coordinates = (9, (False, True, True, False, False, False, False))
+    node_count = (10, (False, True, True, False, False, False, False))
+    nodes = (11, (False, True, True, False, False, False, False))
+    part_node_count = (12, (False, True, True, False, False, False, False))
+    compress = (13, (True, False, True, False, False, False, False))
+    instance_dimension = (14, (True, False, True, False, False, False, False))
+    sample_dimension = (15, (True, False, True, False, False, False, False))
+    cell_methods = (16, (2, 1, True, False, False, True, True))
+
+    def __init__(self, n, props):
+        """_AttributeProperties enum constructor
+
+        :param n: enum id
+        :param props: a tuple containing the attribute's properties (ref_to_dim, ref_to_var, resolve_key, resolve_value,
+            stop_at_local_apex, accept_standard_names, limit_to_coordinates):
+                * ref_to_dim: True or integer if contains references to dimensions (highest int have priority)
+                * ref_to_var: True or integer if contains references to variables (highest int have priority)
+                * resolve_key: True if 'keys' have to be resolved in 'key1: value1 key2: value2 value3' or 'key1 key2'
+                * resolve_value:  True if 'values' have to be resolved in 'key1: value1 key2: value2 value3'
+                * stop_at_local_apex: True if upward research in the hierarchy has to stop at local apex
+                * accept_standard_names: True if any standard name is valid in place of references (in which case no
+                  exception is raised if a reference cannot be resolved, and the standard name is used in place)
+                * limit_to_coordinates: True if references to variables are only resolved if present as well in
+                  the 'coordinates' attributes of the variable.
+        """
+        self.id = n
+        self.ref_to_dim = props[0]
+        self.ref_to_var = props[1]
+        self.resolve_key = props[2]
+        self.resolve_value = props[3]
+        self.stop_at_local_apex = props[4]
+        self.accept_standard_names = props[5]
+        self.limit_to_coordinates = props[6]
+
+
 class _Flattener:
     """Utility class contained the input file, the output file being flattened, and all the logic of the flattening
     process.
@@ -60,52 +180,6 @@ class _Flattener:
     __mapping_str_format = "{}: {}"
     __ref_not_found_error = "REF_NOT_FOUND"
     __default_copy_slice_size = 200000000
-
-    # attributes in which to look for references to variables, and the format of these references:
-    # - 0: String attributes whose value is a blank separated list of variable names: "var1 var2
-    # - 1: String attributes comprising a list of blank-separated pairs of words of the form
-    #      "var1: foo var2: bar"
-    # - 2: String attributes comprising a list of blank-separated pairs of words of the form
-    #      "foo: var1 bar: var2"
-    __var_references_attributes = {
-        "ancillary_variables": 0,
-        "bounds": 0,
-        "cell_measures": 2,
-        "climatology ": 0,
-        "coordinates": 0,
-        "formula_terms": 2,
-        "geometry": 0,
-        "grid_mapping": 0,
-        "interior_ring": 0,
-        "node_coordinates": 0,
-        "node_count": 0,
-        "nodes": 0,
-        "part_node_count": 0,
-    }
-
-    # attributes in which to look for references to dimensions, and the format of these references
-    __dim_references_attributes = {
-        "compress": 0,
-        "instance_dimension": 0,
-        "sample_dimension": 0
-    }
-
-    # cell_methods attribute, which is a special case (format of the reference is 1)
-    __cell_methods_attribute = "cell_methods"
-
-    # regex expressions to read attributes
-    __references_attributes_regex = {
-        0: re.compile(r"(?P<var>\S+)"),
-        1: re.compile(r"(?P<var>\S+): (?P<other>\S+)"),
-        2: re.compile(r"(?P<other>\S+): (?P<var>\S+)")
-    }
-
-    # replacement string in attributes
-    __references_attributes_replace = {
-        0: "{var}{other}",  # Note: 'other' should not be used in that case
-        1: "{var}: {other}",
-        2: "{other}: {var}"
-    }
 
     # name of the attributes used to store the mapping between original and flattened names
     __attr_map_name = "flattener_name_mapping_attributes"
@@ -167,20 +241,9 @@ class _Flattener:
         self.__output_file.setncattr(self.__var_map_name, self.__var_map_value)
 
         # Browse flattened variables to rename references:
-        # - dimensions
-        print("Browsing flattened variables to rename dimension references in attributes:")
+        print("Browsing flattened variables to rename references in attributes:")
         for var in self.__output_file.variables.values():
-            self.adapt_references(var, search_dim=True)
-
-        # - variables
-        print("Browsing flattened variables to rename variable references in attributes:")
-        for var in self.__output_file.variables.values():
-            self.adapt_references(var, search_dim=False)
-
-        # - cell_methods
-        print("Browsing flattened variables to rename references in attribute cell_methods:")
-        for var in self.__output_file.variables.values():
-            self.adapt_references_cell_methods(var)
+            self.adapt_references(var)
 
     def process_group(self, input_group):
         """Flattens a given group to the output file.
@@ -290,13 +353,8 @@ class _Flattener:
         # Add to name mapping attribute
         self.__var_map_value.append(self.generate_mapping_str(var.group(), var.name, new_name))
 
-        # Resolve coordinates and replace by absolute path:
-        # - references to dimensions
-        self.resolve_references(new_var, var, search_dim=True)
-        # - references to variables
-        self.resolve_references(new_var, var, search_dim=False)
-        # - references to dims/vars in cell_methods
-        self.resolve_references_cell_methods(new_var, var)
+        # Resolve references in variable attributes and replace by absolute path:
+        self.resolve_references(new_var, var)
 
     def increment_pos(self, pos, dim, copy_slice_shape, var_shape):
         """Increment position vector in a variable along a dimension by the matching slice length along than dimension.
@@ -342,7 +400,8 @@ class _Flattener:
         var_end_reached = False
         while not var_end_reached:
             # Create current slice
-            current_slice = tuple(slice(pos[dim_i], min(old_var.shape[dim_i], pos[dim_i] + dim_l)) for dim_i, dim_l in enumerate(copy_slice_shape))
+            current_slice = tuple(slice(pos[dim_i], min(old_var.shape[dim_i], pos[dim_i] + dim_l)) for dim_i, dim_l in
+                                  enumerate(copy_slice_shape))
 
             # Copy data in slice
             new_var[current_slice] = old_var[current_slice]
@@ -350,63 +409,23 @@ class _Flattener:
             # Get next position
             var_end_reached = not self.increment_pos(pos, 0, copy_slice_shape, old_var.shape)
 
-    def resolve_reference(self, orig_ref, orig_var, search_dim, is_coordinate_variable=False):
+    def resolve_reference(self, orig_ref, orig_var, attr):
         """Resolve the absolute path to a coordinate variable within the group structure.
 
         :param orig_ref: reference to resolve
         :param orig_var: variable originally containing the reference
-        :param search_dim: if true, search references to dimensions, if false, search references to variables
-        :param is_coordinate_variable: true, if looking for a coordinate variable
+        :param attr: _AttributeProperties object enum item to know if ref to dim or var
         :return: absolute path to the reference
         """
-        ref = orig_ref
-
-        # Reference is already given by absolute path
-        if ref.startswith(self.__default_separator):
-            method = "absolute"
-            absolute_ref = ref
-
-        # Reference is given by relative path
-        elif self.__default_separator in ref:
-            method = " relative"
-            absolute_ref = self.search_by_relative_path(orig_ref, orig_var.group(), search_dim)
-            if absolute_ref is None:
-                absolute_ref = self.handle_reference_error(orig_ref, orig_var.group().path)
-
-        # Reference is to be searched by proximity
-        else:
-            method = " proximity"
-            resolved_var = self.search_by_proximity(ref, orig_var.group(), search_dim, False, is_coordinate_variable)
-            # If not found, send warning or error
-            if resolved_var is None:
-                return self.handle_reference_error(ref, orig_var.group().path)
-            # If found in root group
-            elif resolved_var.group().parent is None:
-                absolute_ref = self.__default_separator + resolved_var.name
-            # If found in other group
-            else:
-                absolute_ref = self.__pathname_format.format(resolved_var.group().path, resolved_var.name)
-
-        # Could resolve reference
-        print("      {} coordinate reference to '{}' resolved as '{}'".format(method, orig_ref, absolute_ref))
-        return absolute_ref
-
-    def resolve_reference_cell_methods(self, orig_ref, orig_var):
-        """Resolve the absolute path to a reference for the particular case of the 'cell_methods' attribute.
-        This attribute is special because the reference can be to a dimension, a coordinate variable, the word 'area'
-        or any standard name.
-
-        :param orig_ref: reference to resolve
-        :param orig_var: variable originally containing the reference
-        :return: absolute path to the reference
-        """
-        if orig_ref == "area":
-            print("      cell_methods: coordinate reference is key word 'area'. Skipping.")
-            return orig_ref
-
         ref = orig_ref
         absolute_ref = None
-        type = ""
+        ref_type = ""
+
+        # Resolve first as dim (True), or var (False)
+        resolve_dim_or_var = attr.ref_to_dim > attr.ref_to_var
+
+        # Resolve var (resp. dim) if resolving as dim (resp. var) failed
+        resolve_alt = (attr.ref_to_dim and attr.ref_to_var)
 
         # Reference is already given by absolute path
         if ref.startswith(self.__default_separator):
@@ -416,39 +435,69 @@ class _Flattener:
         # Reference is given by relative path
         elif self.__default_separator in ref:
             method = " relative"
-            # Check if is ref to var
-            absolute_ref = self.search_by_relative_path(orig_ref, orig_var.group(), False)
-            type = "variable "
-            # Check if is ref to dim
-            if absolute_ref is None:
-                type = "dimension "
-                absolute_ref = self.search_by_relative_path(orig_ref, orig_var.group(), True)
+
+            # First tentative as dim OR var
+            ref_type = "dimension" if resolve_dim_or_var else "variable"
+            absolute_ref = self.search_by_relative_path(orig_ref, orig_var.group(), resolve_dim_or_var)
+
+            # If failed and alternative possible, second tentative
+            if absolute_ref is None and resolve_alt:
+                ref_type = "dimension" if not resolve_dim_or_var else "variable"
+                absolute_ref = self.search_by_relative_path(orig_ref, orig_var.group(), not resolve_dim_or_var)
 
         # Reference is to be searched by proximity
         else:
             method = " proximity"
-            # Check if is ref to var
-            resolved_var = self.search_by_proximity(ref, orig_var.group(), False, False, True)
-            type = "variable "
-            # Check if is ref to dim
-            if resolved_var is None:
-                resolved_var = self.search_by_proximity(ref, orig_var.group(), True, False, False)
-                type = "dimension "
-            # If found
-            if resolved_var is not None:
-                group_name = "" if resolved_var.group().parent is None else resolved_var.group().path
-                absolute_ref = self.__pathname_format.format(group_name, resolved_var.name)
+            absolute_ref, ref_type = self.resolve_reference_proximity(ref, resolve_dim_or_var, resolve_alt, orig_var,
+                                                                      attr)
 
-        # Could not resolve reference
-        if absolute_ref is None:
-            print("      cell_methods: coordinate reference to '{}' in cell_methods not resolved. "
+        # Post-search checks and return result
+        return self.resolve_reference_post_processing(absolute_ref, orig_ref, orig_var, attr, ref_type, method)
+
+    def resolve_reference_proximity(self, ref, resolve_dim_or_var, resolve_alt, orig_var, attr):
+        """Resolve reference: search by proximity
+        """
+        # First tentative as dim OR var
+        ref_type = "dimension" if resolve_dim_or_var else "variable"
+        resolved_var = self.search_by_proximity(ref, orig_var.group(), resolve_dim_or_var, False,
+                                                attr.stop_at_local_apex)
+
+        # If failed and alternative possible, second tentative
+        if resolved_var is None and resolve_alt:
+            ref_type = "dimension" if not resolve_dim_or_var else "variable"
+            resolved_var = self.search_by_proximity(ref, orig_var.group(), not resolve_dim_or_var, False,
+                                                    attr.stop_at_local_apex)
+
+        # If found, create ref string
+        if resolved_var is not None:
+            return self.pathname(resolved_var.group(), resolved_var.name), ref_type
+        else:
+            return None, ""
+
+    def resolve_reference_post_processing(self, absolute_ref, orig_ref, orig_var, attr, ref_type, method):
+        """Post-processing operations after resolving reference
+        """
+        # If not found and accept standard name, assume standard name
+        if absolute_ref is None and attr.accept_standard_names:
+            print("      coordinate reference to '{}' not resolved. Assumed to be a standard name.".format(orig_ref))
+            ref_type = "standard_name"
+            absolute_ref = orig_ref
+        # Else if not found, raise exception
+        elif absolute_ref is None:
+            absolute_ref = self.handle_reference_error(orig_ref, orig_var.group().path)
+        # If found:
+        else:
+            print("      {} coordinate reference to {} '{}' resolved as '{}'"
+                  .format(method, ref_type, orig_ref, absolute_ref))
+
+        # If variables refs are limited to coordinate variable, additional check
+        if ref_type == "variable" and attr.limit_to_coordinates \
+                and ("coordinates" not in orig_var.ncattrs() or orig_ref not in orig_var.coordinates):
+            print("      coordinate reference to '{}' is not a COORDINATE variable. "
                   "Assumed to be a standard name.".format(orig_ref))
             absolute_ref = orig_ref
-        # Could resolve reference
-        else:
-            print("      cell_methods: {} coordinate reference to '{}' resolved as {}'{}'"
-                  .format(method, orig_ref, type, absolute_ref))
 
+        # Return result
         return absolute_ref
 
     def search_by_relative_path(self, ref, current_group, search_dim):
@@ -478,7 +527,7 @@ class _Flattener:
         elt = current_group.dimensions[ref_split[-1]] if search_dim else current_group.variables[ref_split[-1]]
 
         # Get absolute reference
-        return self.__pathname_format.format(elt.group().path, elt.name)
+        return self.pathname(elt.group(), elt.name)
 
     def search_by_proximity(self, ref, current_group, search_dim, local_apex_reached, is_coordinate_variable):
         """Resolve the absolute path to a reference within the group structure, using search by proximity.
@@ -540,119 +589,98 @@ class _Flattener:
         except IndexError:
             return ""
 
-    def resolve_references(self, var, old_var, search_dim=False):
+    def resolve_references(self, var, old_var):
         """In a given variable, replace all references to other variables in its attributes by absolute references.
 
         :param var: flattened variable in which references should be renamed with absolute references
         :param old_var: original variable (in group structure)
-        :param search_dim: if true, search references to dimensions, if false, search references to variables
         """
-        if search_dim:
-            attr_dict = self.__dim_references_attributes
-        else:
-            attr_dict = self.__var_references_attributes
 
-        for attr_name, attr_format in attr_dict.items():
-            if attr_name in var.__dict__:
-                is_coordinate_variable = attr_name == "coordinates"
-                regex_format = self.__references_attributes_regex[attr_format]
-                replace_format = self.__references_attributes_replace[attr_format]
-                attr_value = var.getncattr(attr_name)
-                new_attr_value = regex_format.sub(lambda x: replace_format.format(
-                    var=self.resolve_reference(x.group("var"), old_var, search_dim, is_coordinate_variable),
-                    other=self.__escape_index_error(x, "other")), attr_value)
-                var.setncattr(attr_name, new_attr_value)
+        for attr in _AttributeProperties:
+            if attr.name in var.__dict__:
+                attr_value = var.getncattr(attr.name)
+                # Parse attribute value
+                parsed_attr = parse_var_attr(attr_value)
 
-    def resolve_references_cell_methods(self, var, old_var):
-        """In a given variable, replace all references inside the 'cell_methods' attribute by absolute references.
+                # Resolved references in parsed as required by attribute properties
+                resolved_parsed_attr = collections.OrderedDict()
 
-        :param var: flattened variable in which references should be renamed with absolute references
-        :param old_var: original variable (in group structure)
-        """
-        if self.__cell_methods_attribute in var.__dict__:
-            regex_format = self.__references_attributes_regex[1]
-            replace_format = self.__references_attributes_replace[1]
-            attr_value = var.getncattr(self.__cell_methods_attribute)
-            new_attr_value = regex_format.sub(lambda x: replace_format.format(
-                var=self.resolve_reference_cell_methods(x.group("var"), old_var),
-                other=self.__escape_index_error(x, "other")), attr_value)
-            var.setncattr(self.__cell_methods_attribute, new_attr_value)
+                for k, v in parsed_attr.items():
+                    new_k = self.resolve_reference(k, old_var, attr) if attr.resolve_key else k
 
-    def adapt_references(self, var, search_dim=False):
+                    new_v = ([self.resolve_reference(x, old_var, attr) for x in parsed_attr[k]]
+                             if attr.resolve_value and parsed_attr[k] is not None else parsed_attr[k])
+
+                    resolved_parsed_attr[new_k] = new_v
+
+                # Re-generate attribute value string with resolved references
+                var.setncattr(attr.name, generate_var_attr_str(resolved_parsed_attr))
+
+    def adapt_references(self, var):
         """In a given variable, replace all references to variables in attributes by references to the new names in the
         flattened NetCDF. All references have to be already resolved as absolute references.
 
         :param var: flattened variable in which references should be renamed with new names
-        :param search_dim: if true, search references to dimensions, if false, search references to variables
         """
-        if search_dim:
-            attr_dict = self.__dim_references_attributes
-            name_mapping = self.__dim_map
-        else:
-            attr_dict = self.__var_references_attributes
-            name_mapping = self.__var_map
+        for attr in _AttributeProperties:
+            if attr.name in var.__dict__:
+                attr_value = var.getncattr(attr.name)
+                # Parse attribute value
+                parsed_attr = parse_var_attr(attr_value)
 
-        for attr_name, attr_format in attr_dict.items():
-            if attr_name in var.__dict__:
-                attr_value = var.getncattr(attr_name)
-                regex_format = self.__references_attributes_regex[attr_format]
-                replace_format = self.__references_attributes_replace[attr_format]
-                new_attr_value = regex_format.sub(lambda x: replace_format.format(
-                    var=self.adapt_name(name_mapping, x.group("var")),
-                    other=self.__escape_index_error(x, "other")), attr_value)
-                var.setncattr(attr_name, new_attr_value)
-                print("   attribute '{}'  in {} '{}': references '{}' renamed as '{}'"
-                      .format(attr_name, ("variable", "dimension")[search_dim], var.name, attr_value, new_attr_value))
+                adapted_parsed_attr = collections.OrderedDict()
 
-    def adapt_references_cell_methods(self, var):
-        """In a given variable, replace all references in cell_methods attributes by references to the new names in the
-        flattened NetCDF. All references have to be already resolved as absolute references.
+                for k, v in parsed_attr.items():
+                    new_k = self.adapt_name(k, attr) if attr.resolve_key else k
 
-        :param var: flattened variable in which references should be renamed with new names
-        """
-        if self.__cell_methods_attribute in var.__dict__:
-            regex_format = self.__references_attributes_regex[1]
-            replace_format = self.__references_attributes_replace[1]
-            attr_value = var.getncattr(self.__cell_methods_attribute)
-            new_attr_value = regex_format.sub(lambda x: replace_format.format(
-                var=self.adapt_name_cell_methods(x.group("var")),
-                other=self.__escape_index_error(x, "other")), attr_value)
-            var.setncattr(self.__cell_methods_attribute, new_attr_value)
-            print("   attribute 'cell_method'  in '{}': references '{}' renamed as '{}'"
-                  .format(var.name, attr_value, new_attr_value))
+                    new_v = ([self.adapt_name(x, attr) for x in parsed_attr[k]]
+                             if attr.resolve_value and parsed_attr[k] is not None else parsed_attr[k])
 
-    def adapt_name(self, name_mapping, resolved_ref):
+                    adapted_parsed_attr[new_k] = new_v
+
+                new_attr_value = generate_var_attr_str(adapted_parsed_attr)
+                var.setncattr(attr.name, new_attr_value)
+
+                print("   attribute '{}'  in '{}': references '{}' renamed as '{}'"
+                      .format(attr.name, var.name, attr_value, new_attr_value))
+
+    def adapt_name(self, resolved_ref, attr):
         """Return name of flattened reference. If not found, raise exception or continue warning.
 
-        :param name_mapping: dictionary containing name mapping
         :param resolved_ref: resolved reference to adapt
+        :param attr: _AttributeProperties object enum item to know in which dict to look for name mapping
         :return: adapted reference
         """
-        try:
-            # If could reference could not be resolved, leave error message as reference
-            if self.__ref_not_found_error in resolved_ref:
-                return resolved_ref
-            # Else, replace by new name
-            else:
-                return name_mapping[resolved_ref]
-
-        # If not found in mapping, warning or exception
-        except KeyError:
-            return self.handle_reference_error(resolved_ref)
-
-    def adapt_name_cell_methods(self, resolved_ref):
-        """Return name of flattened reference. First look for name as variable, then as dimension. If not found, leave
-        as it is.
-
-        :param resolved_ref: resolved reference to adapt
-        :return: adapted reference
-        """
-        if resolved_ref in self.__var_map:
-            return self.__var_map[resolved_ref]
-        elif resolved_ref in self.__dim_map:
-            return self.__dim_map[resolved_ref]
-        else:
+        # If ref contains Error message, leave as such
+        if self.__ref_not_found_error in resolved_ref:
             return resolved_ref
+
+        # Select highest priority map
+        if attr.ref_to_dim > attr.ref_to_var:
+            name_mapping = self.__dim_map
+        if attr.ref_to_dim < attr.ref_to_var:
+            name_mapping = self.__var_map
+
+        # Try to find mapping
+        try:
+            return name_mapping[resolved_ref]
+
+        # If not found, look in other map if allowed
+        except KeyError:
+
+            if attr.ref_to_dim and attr.ref_to_var:
+                name_mapping = self.__dim_map if attr.ref_to_dim < attr.ref_to_var else self.__var_map
+                try:
+                    return name_mapping[resolved_ref]
+                except KeyError:
+                    pass
+
+        # If still not found, check if any standard name is allowed
+        if attr.accept_standard_names:
+            return resolved_ref
+        # If not, raise exception
+        else:
+            return self.handle_reference_error(resolved_ref)
 
     def pathname(self, group, name):
         """Compose full path name to an element in a group structure: /path/to/group/elt
@@ -728,7 +756,7 @@ class _Flattener:
             message = message + " from {}".format(context)
         if self.__lax_mode:
             warnings.warn(message)
-            return self.__ref_not_found_error + ":_" + ref
+            return self.__ref_not_found_error + "_" + ref
         else:
             raise ReferenceException(message)
 

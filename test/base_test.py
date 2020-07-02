@@ -100,7 +100,7 @@ class BaseTest(TestCase):
         else:
             input_ds = Dataset(input_nc)
             output_ds = Dataset(output_nc, 'w', format='NETCDF4')
-            output = flatten(input_ds, output_ds, lax_mode=lax_mode, copy_slices=copy_slices)
+            flatten(input_ds, output_ds, lax_mode=lax_mode, copy_slices=copy_slices)
             input_ds.close()
             output_ds.close()
 

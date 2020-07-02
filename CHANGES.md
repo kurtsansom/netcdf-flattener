@@ -8,6 +8,11 @@ All notable changes to this project will be documented in this file.
 - Issue #25: Add contribution rules and MR template
 - Issue #27: Some coordinate variables lose assocation with data variables upon flattening
 - Issue #29: Replace `#` by `__` in flattened names for CF compliance
+- Refactoring parsing of references in attributes: 
+  - Issue #28: Add support for expanded form of `grid_mapping` attribute
+  - Issue #30: Add support for attribute values in the form `y: x: mean (interval: 1 degree comment: comment 1 here) t: 
+maximum (comment 2 here)`. 
+  - Issue #30: For `cell_methods`, only accept references to variables that are coordinate variables.
 
 ## 1.0.1
 - Issue #8: Correct API to use `Dataset` objects as I/O instead of filenames.

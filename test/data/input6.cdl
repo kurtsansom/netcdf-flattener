@@ -1,0 +1,148 @@
+netcdf input6_grp {
+dimensions:
+	z = 3 ;
+	y = 4 ;
+	x = 5 ;
+variables:
+	double x(x) ;
+		x:standard_name = "projection_x_coordinate" ;
+		x:long_name = "Easting" ;
+		x:units = "m" ;
+	double y(y) ;
+		y:standard_name = "projection_y_coordinate" ;
+		y:long_name = "Northing" ;
+		y:units = "m" ;
+	double z(z) ;
+		z:standard_name = "height_above_reference_ellipsoid" ;
+		z:long_name = "height_above_osgb_newlyn_datum_masl" ;
+		z:units = "m" ;
+
+// global attributes:
+		:Conventions = "CF-1.8" ;
+data:
+
+ x = 1, 1, 1, 1, 1 ;
+
+ y = 2, 2, 2, 2 ;
+
+ z = 3, 3, 3 ;
+
+group: grp1 {
+  variables:
+  	double lat(y, x) ;
+  		lat:standard_name = "latitude" ;
+  		lat:units = "degrees_north" ;
+  	double lon(y, x) ;
+  		lon:standard_name = "longitude" ;
+  		lon:units = "degrees_east" ;
+  	float temp(z, y, x) ;
+  		temp:standard_name = "air_temperature" ;
+  		temp:units = "K" ;
+  		temp:coordinates = "lat lon" ;
+  		temp:grid_mapping = "crsOSGB: x y crsWGS84: lat lon" ;
+  	float temp2(z, y, x) ;
+  		temp2:standard_name = "air_temperature_2" ;
+  		temp2:units = "K" ;
+  		temp2:coordinates = "lat lon" ;
+  		temp2:grid_mapping = "crsOSGB" ;
+  	float pres(z, y, x) ;
+  		pres:standard_name = "air_pressure" ;
+  		pres:units = "Pa" ;
+  		pres:coordinates = "lat lon" ;
+  		pres:grid_mapping = "/grp1/crsOSGB: ../x ../y crsWGS84: /grp1/lat /grp1/lon" ;
+  	float pres2(z, y, x) ;
+  		pres2:standard_name = "air_pressure_2" ;
+  		pres2:units = "Pa" ;
+  		pres2:coordinates = "lat lon" ;
+  		pres2:grid_mapping = "/grp1/crsOSGB" ;
+  	int crsOSGB ;
+  		crsOSGB:grid_mapping_name = "transverse_mercator" ;
+  		crsOSGB:semi_major_axis = 6377563.396 ;
+  		crsOSGB:inverse_flattening = 299.3249646 ;
+  		crsOSGB:longitude_of_prime_meridian = 0. ;
+  		crsOSGB:latitude_of_projection_origin = 49. ;
+  		crsOSGB:longitude_of_central_meridian = -2. ;
+  		crsOSGB:scale_factor_at_central_meridian = 0.9996012717 ;
+  		crsOSGB:false_easting = 400000. ;
+  		crsOSGB:false_northing = -100000. ;
+  		crsOSGB:unit = "metre" ;
+  	int crsWGS84 ;
+  		crsWGS84:grid_mapping_name = "latitude_longitude" ;
+  		crsWGS84:longitude_of_prime_meridian = 0. ;
+  		crsWGS84:semi_major_axis = 6378137. ;
+  		crsWGS84:inverse_flattening = 298.257223563 ;
+  data:
+
+   lat =
+  14, 65, 31, 35, 58,
+  24, 60, 69, 46, 56,
+  95, 14, 42, 62, 88,
+  81, 66, 49, 77, 23 ;
+
+   lon =
+  90, 78, 66, 17, 94,
+  57, 3, 57, 4, 68,
+  44, 98, 38, 10, 18,
+  77, 26, 80, 57, 69 ;
+
+   temp =
+  77, 96, 66, 58, 46,
+  93, 6, 82, 49, 56,
+  76, 79, 90, 61, 83,
+  82, 33, 61, 5, 33,
+  77, 24, 97, 15, 34,
+  6, 9, 63, 42, 39,
+  98, 65, 79, 97, 59,
+  3, 36, 76, 62, 92,
+  2, 52, 76, 31, 55,
+  74, 79, 87, 27, 72,
+  19, 82, 82, 2, 32,
+  56, 92, 15, 74, 13 ;
+
+   temp2 =
+  77, 96, 66, 58, 46,
+  93, 6, 82, 49, 56,
+  76, 79, 90, 61, 83,
+  82, 33, 61, 5, 33,
+  77, 24, 97, 15, 34,
+  6, 9, 63, 42, 39,
+  98, 65, 79, 97, 59,
+  3, 36, 76, 62, 92,
+  2, 52, 76, 31, 55,
+  74, 79, 87, 27, 72,
+  19, 82, 82, 2, 32,
+  56, 92, 15, 74, 13 ;
+
+   pres =
+  27, 33, 47, 82, 34,
+  57, 11, 58, 88, 80,
+  95, 66, 86, 59, 90,
+  49, 16, 83, 79, 54,
+  99, 61, 82, 23, 25,
+  84, 29, 45, 36, 27,
+  81, 19, 77, 47, 89,
+  7, 92, 13, 17, 15,
+  37, 85, 73, 83, 20,
+  29, 36, 35, 87, 60,
+  97, 9, 32, 73, 20,
+  16, 49, 40, 71, 85 ;
+
+   pres2 =
+  27, 33, 47, 82, 34,
+  57, 11, 58, 88, 80,
+  95, 66, 86, 59, 90,
+  49, 16, 83, 79, 54,
+  99, 61, 82, 23, 25,
+  84, 29, 45, 36, 27,
+  81, 19, 77, 47, 89,
+  7, 92, 13, 17, 15,
+  37, 85, 73, 83, 20,
+  29, 36, 35, 87, 60,
+  97, 9, 32, 73, 20,
+  16, 49, 40, 71, 85 ;
+
+   crsOSGB = 11 ;
+
+   crsWGS84 = 12 ;
+  } // group grp1
+}
