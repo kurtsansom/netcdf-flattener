@@ -125,8 +125,6 @@ def generate_var_attr_str(d):
 class _AttributeProperties(Enum):
     """"Utility class containing the properties for each type of variable attribute, defining how contained references
     to dimensions and variables should be parsed and processed."""
-    # Name = (id, (ref_to_dim, ref_to_var, resolve_key, resolve_value, stop_at_local_apex, accept_standard_names,
-    # limit_to_coordinates))
     ancillary_variables = (0, (False, True, True, False, False, False, False))
     bounds = (1, (False, True, True, False, False, False, False))
     cell_measures = (2, (False, True, False, True, False, False, False))
@@ -449,24 +447,31 @@ class _Flattener:
         # Reference is to be searched by proximity
         else:
             method = " proximity"
-
-            # First tentative as dim OR var
-            ref_type = "dimension" if resolve_dim_or_var else "variable"
-            resolved_var = self.search_by_proximity(ref, orig_var.group(), resolve_dim_or_var, False,
-                                                    attr.stop_at_local_apex)
-
-            # If failed and alternative possible, second tentative
-            if resolved_var is None and resolve_alt:
-                ref_type = "dimension" if not resolve_dim_or_var else "variable"
-                resolved_var = self.search_by_proximity(ref, orig_var.group(), not resolve_dim_or_var, False,
-                                                        attr.stop_at_local_apex)
-
-            # If found, create ref string
-            if resolved_var is not None:
-                absolute_ref = self.pathname(resolved_var.group(), resolved_var.name)
+            absolute_ref, ref_type = self.resolve_reference_proximity(ref, resolve_dim_or_var, resolve_alt, orig_var,
+                                                                      attr)
 
         # Post-search checks and return result
         return self.resolve_reference_post_processing(absolute_ref, orig_ref, orig_var, attr, ref_type, method)
+
+    def resolve_reference_proximity(self, ref, resolve_dim_or_var, resolve_alt, orig_var, attr):
+        """Resolve reference: search by proximity
+        """
+        # First tentative as dim OR var
+        ref_type = "dimension" if resolve_dim_or_var else "variable"
+        resolved_var = self.search_by_proximity(ref, orig_var.group(), resolve_dim_or_var, False,
+                                                attr.stop_at_local_apex)
+
+        # If failed and alternative possible, second tentative
+        if resolved_var is None and resolve_alt:
+            ref_type = "dimension" if not resolve_dim_or_var else "variable"
+            resolved_var = self.search_by_proximity(ref, orig_var.group(), not resolve_dim_or_var, False,
+                                                    attr.stop_at_local_apex)
+
+        # If found, create ref string
+        if resolved_var is not None:
+            return self.pathname(resolved_var.group(), resolved_var.name), ref_type
+        else:
+            return None, ""
 
     def resolve_reference_post_processing(self, absolute_ref, orig_ref, orig_var, attr, ref_type, method):
         """Post-processing operations after resolving reference
