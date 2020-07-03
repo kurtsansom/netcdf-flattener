@@ -13,6 +13,7 @@ All notable changes to this project will be documented in this file.
   - Issue #30: Add support for attribute values in the form `y: x: mean (interval: 1 degree comment: comment 1 here) t: 
 maximum (comment 2 here)`. 
   - Issue #30: For `cell_methods`, only accept references to variables that are coordinate variables.
+- Issue #23: prefix flattener-related attributes with double underscore.
 
 ## 1.0.1
 - Issue #8: Correct API to use `Dataset` objects as I/O instead of filenames.

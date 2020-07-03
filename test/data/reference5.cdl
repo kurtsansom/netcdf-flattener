@@ -25,9 +25,9 @@ variables:
 
 // global attributes:
 		:Conventions = "CF-1.8" ;
-		:flattener_name_mapping_attributes = "Conventions: /Conventions" ;
-		string :flattener_name_mapping_dimensions = "group1__lat: /group1/lat", "group1__lon: /group1/lon", "group1__time: /group1/time" ;
-		string :flattener_name_mapping_variables = "group1__lat: /group1/lat", "group1__lon: /group1/lon", "group1__time: /group1/time", "group1__q1: /group1/q1", "group1__q2: /group1/q2", "group1__q3: /group1/q3" ;
+		:__flattener_name_mapping_attributes = "Conventions: /Conventions" ;
+		string :__flattener_name_mapping_dimensions = "group1__lat: /group1/lat", "group1__lon: /group1/lon", "group1__time: /group1/time" ;
+		string :__flattener_name_mapping_variables = "group1__lat: /group1/lat", "group1__lon: /group1/lon", "group1__time: /group1/time", "group1__q1: /group1/q1", "group1__q2: /group1/q2", "group1__q3: /group1/q3" ;
 data:
 
  group1__lat = -75, -45, 0, 45, 75 ;

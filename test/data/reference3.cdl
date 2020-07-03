@@ -41,9 +41,9 @@ variables:
 		:e3sm__title = "group-level title attribute is allowed" ;
 		:e3sm__e3sm_01__Realization = "1" ;
 		:e3sm__e3sm_01__history = "Group-level history attributes are OK too" ;
-		string :flattener_name_mapping_attributes = "Conventions: /Conventions", "title: /title", "history: /history", "e3sm__title: /e3sm/title", "e3sm__e3sm_01__Realization: /e3sm/e3sm_01/Realization", "e3sm__e3sm_01__history: /e3sm/e3sm_01/history" ;
-		string :flattener_name_mapping_dimensions = "lat: /lat", "lon: /lon", "e3sm__lat: /e3sm/lat", "e3sm__lon: /e3sm/lon", "e3sm__time: /e3sm/time" ;
-		string :flattener_name_mapping_variables = "e3sm__lat: /e3sm/lat", "e3sm__lon: /e3sm/lon", "e3sm__time: /e3sm/time", "e3sm__e3sm_01__tas: /e3sm/e3sm_01/tas", "e3sm__e3sm_01__sic: /e3sm/e3sm_01/sic" ;
+		string :__flattener_name_mapping_attributes = "Conventions: /Conventions", "title: /title", "history: /history", "e3sm__title: /e3sm/title", "e3sm__e3sm_01__Realization: /e3sm/e3sm_01/Realization", "e3sm__e3sm_01__history: /e3sm/e3sm_01/history" ;
+		string :__flattener_name_mapping_dimensions = "lat: /lat", "lon: /lon", "e3sm__lat: /e3sm/lat", "e3sm__lon: /e3sm/lon", "e3sm__time: /e3sm/time" ;
+		string :__flattener_name_mapping_variables = "e3sm__lat: /e3sm/lat", "e3sm__lon: /e3sm/lon", "e3sm__time: /e3sm/time", "e3sm__e3sm_01__tas: /e3sm/e3sm_01/tas", "e3sm__e3sm_01__sic: /e3sm/e3sm_01/sic" ;
 data:
 
  e3sm__lat = -90, 90 ;

@@ -61,9 +61,9 @@ variables:
 
 // global attributes:
 		:Conventions = "CF-1.8" ;
-		:flattener_name_mapping_attributes = "Conventions: /Conventions" ;
-		string :flattener_name_mapping_dimensions = "z: /z", "y: /y", "x: /x" ;
-		string :flattener_name_mapping_variables = "x: /x", "y: /y", "z: /z", "grp1__lat: /grp1/lat", "grp1__lon: /grp1/lon", "grp1__temp: /grp1/temp", "grp1__temp2: /grp1/temp2", "grp1__pres: /grp1/pres", "grp1__pres2: /grp1/pres2", "grp1__crsOSGB: /grp1/crsOSGB", "grp1__crsWGS84: /grp1/crsWGS84" ;
+		:__flattener_name_mapping_attributes = "Conventions: /Conventions" ;
+		string :__flattener_name_mapping_dimensions = "z: /z", "y: /y", "x: /x" ;
+		string :__flattener_name_mapping_variables = "x: /x", "y: /y", "z: /z", "grp1__lat: /grp1/lat", "grp1__lon: /grp1/lon", "grp1__temp: /grp1/temp", "grp1__temp2: /grp1/temp2", "grp1__pres: /grp1/pres", "grp1__pres2: /grp1/pres2", "grp1__crsOSGB: /grp1/crsOSGB", "grp1__crsWGS84: /grp1/crsWGS84" ;
 data:
 
  x = 1, 1, 1, 1, 1 ;
