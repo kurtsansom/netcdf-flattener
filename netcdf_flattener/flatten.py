@@ -148,7 +148,7 @@ class _AttributeProperties(Enum):
 
         :param n: enum id
         :param props: a tuple containing the attribute's properties (ref_to_dim, ref_to_var, resolve_key, resolve_value,
-            stop_at_local_apex, accept_standard_names, limit_to_coordinates):
+            stop_at_local_apex, accept_standard_names, limit_to_scalar_coordinates):
                 * ref_to_dim: True or integer if contains references to dimensions (highest int have priority)
                 * ref_to_var: True or integer if contains references to variables (highest int have priority)
                 * resolve_key: True if 'keys' have to be resolved in 'key1: value1 key2: value2 value3' or 'key1 key2'
@@ -156,8 +156,8 @@ class _AttributeProperties(Enum):
                 * stop_at_local_apex: True if upward research in the hierarchy has to stop at local apex
                 * accept_standard_names: True if any standard name is valid in place of references (in which case no
                   exception is raised if a reference cannot be resolved, and the standard name is used in place)
-                * limit_to_coordinates: True if references to variables are only resolved if present as well in
-                  the 'coordinates' attributes of the variable.
+                * limit_to_scalar_coordinates: True if references to variables are only resolved if present as well in
+                  the 'coordinates' attributes of the variable, and they are scalar.
         """
         self.id = n
         self.ref_to_dim = props[0]
@@ -166,7 +166,7 @@ class _AttributeProperties(Enum):
         self.resolve_value = props[3]
         self.stop_at_local_apex = props[4]
         self.accept_standard_names = props[5]
-        self.limit_to_coordinates = props[6]
+        self.limit_to_scalar_coordinates = props[6]
 
 
 class _Flattener:
@@ -490,9 +490,10 @@ class _Flattener:
                   .format(method, ref_type, orig_ref, absolute_ref))
 
         # If variables refs are limited to coordinate variable, additional check
-        if ref_type == "variable" and attr.limit_to_coordinates \
-                and ("coordinates" not in orig_var.ncattrs() or orig_ref not in orig_var.coordinates):
-            print("      coordinate reference to '{}' is not a COORDINATE variable. "
+        if ref_type == "variable" and attr.limit_to_scalar_coordinates \
+                and (("coordinates" not in orig_var.ncattrs() or orig_ref not in orig_var.coordinates)
+                     or self._Flattener__input_file[absolute_ref].ndim > 0):
+            print("      coordinate reference to '{}' is not a SCALAR COORDINATE variable. "
                   "Assumed to be a standard name.".format(orig_ref))
             absolute_ref = orig_ref
 
