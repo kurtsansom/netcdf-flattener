@@ -33,6 +33,12 @@ variables:
 		group1__q2:standard_name = "specific_humidity2" ;
 		group1__q2:units = "1" ;
 		group1__q2:cell_methods = "area: mean any_valid_name: mean time: mean group1__bounds2: mean" ;
+	double group1__q3(group1__lat, group1__lon) ;
+		group1__q3:project = "research" ;
+		group1__q3:standard_name = "specific_humidity3" ;
+		group1__q3:units = "1" ;
+		group1__q3:coordinates = "group1__time group1__lon_bnds" ;
+		group1__q3:cell_methods = "area: mean any_valid_name: mean group1__time: mean lon_bnds: mean" ;
 	double group1__y(y) ;
 		group1__y:units = "degrees_north" ;
 		group1__y:standard_name = "latitude" ;
@@ -50,7 +56,7 @@ variables:
 		:Conventions = "CF-1.8" ;
 		:flattener_name_mapping_attributes = "Conventions: /Conventions" ;
 		string :flattener_name_mapping_dimensions = "y: /y", "x: /x", "group1__lat: /group1/lat", "group1__bounds2: /group1/bounds2", "group1__lon: /group1/lon" ;
-		string :flattener_name_mapping_variables = "t: /t", "group1__lat_bnds: /group1/lat_bnds", "group1__lat: /group1/lat", "group1__lon_bnds: /group1/lon_bnds", "group1__lon: /group1/lon", "group1__time: /group1/time", "group1__q: /group1/q", "group1__q2: /group1/q2", "group1__y: /group1/y", "group1__x: /group1/x", "group1__tas: /group1/tas" ;
+		string :flattener_name_mapping_variables = "t: /t", "group1__lat_bnds: /group1/lat_bnds", "group1__lat: /group1/lat", "group1__lon_bnds: /group1/lon_bnds", "group1__lon: /group1/lon", "group1__time: /group1/time", "group1__q: /group1/q", "group1__q2: /group1/q2", "group1__q3: /group1/q3", "group1__y: /group1/y", "group1__x: /group1/x", "group1__tas: /group1/tas" ;
 data:
 
  t = -10 ;
@@ -86,6 +92,13 @@ data:
   0.006, 0.036, 0.019, 0.035, 0.018, 0.037, 0.034, 0.013 ;
 
  group1__q2 =
+  0.007, 0.034, 0.003, 0.014, 0.018, 0.037, 0.024, 0.029,
+  0.023, 0.036, 0.045, 0.062, 0.046, 0.073, 0.006, 0.066,
+  0.11, 0.131, 0.124, 0.146, 0.087, 0.103, 0.057, 0.011,
+  0.029, 0.059, 0.039, 0.07, 0.058, 0.072, 0.009, 0.017,
+  0.006, 0.036, 0.019, 0.035, 0.018, 0.037, 0.034, 0.013 ;
+
+ group1__q3 =
   0.007, 0.034, 0.003, 0.014, 0.018, 0.037, 0.024, 0.029,
   0.023, 0.036, 0.045, 0.062, 0.046, 0.073, 0.006, 0.066,
   0.11, 0.131, 0.124, 0.146, 0.087, 0.103, 0.057, 0.011,
