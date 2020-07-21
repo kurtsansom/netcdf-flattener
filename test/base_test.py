@@ -80,7 +80,7 @@ class BaseTest(TestCase):
 
         # Generate NetCDF from input CDL
         print("Generate NetCDF file '{}' from input CDL '{}'".format(input_nc, input_cdl))
-        subprocess.call(["ncgen", "-o", input_nc, input_cdl])
+        subprocess.call(["ncgen", "-o", input_nc, input_cdl])  # nosec
 
         # Run flattening script
         print("Flatten '{}' in new file '{}'".format(input_nc, output_nc))
@@ -106,7 +106,7 @@ class BaseTest(TestCase):
 
             # Dump flattened NetCDF and compare to reference
             print("Read content of flattened netcdf file '{}' in CDL (ncdump)".format(output_nc))
-            dumped_text = subprocess.check_output(["ncdump", output_nc]).decode("utf-8")
+            dumped_text = subprocess.check_output(["ncdump", output_nc]).decode("utf-8")  # nosec
 
             print("Read content of reference CDL file '{}'".format(reference_cdl))
             with open(reference_cdl, 'r') as content_file:
