@@ -52,17 +52,33 @@ the mapping ``"lat: /lat"``.
 
 ## Deployment
 
+### From PyPi
+
+`netCDF-flattener` is in installable with `pip`, for example:
+
+    pip install netcdf-flattener
+
+### From source
+
 Install the build dependencies:
 
     python3 -m pip install --upgrade pip setuptools wheel
 
-To compile the wheel file, run the following command from the repository root:
+Download the source code from
+https://gitlab.eumetsat.int/open-source/netcdf-flattener and compile
+the wheel file, by running the following command from the repository root:
 
     python3 setup.py bdist_wheel
 
-Install the wheel file using PIP:
+Install the wheel file using `pip`:
 
     python3 -m pip install dist/netcdf_flattener-*.whl
+
+## Support
+
+Questions and issues should be raised at the issue tracker in the
+canonical source code repository:
+https://gitlab.eumetsat.int/open-source/netcdf-flattener
 
 ## Automated testing
 
