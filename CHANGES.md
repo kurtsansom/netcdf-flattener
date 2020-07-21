@@ -2,6 +2,7 @@
 All notable changes to this project will be documented in this file.
 
 ## Pending
+- #26: Use `logging.info` rather than `print`
 - Allow flattening files without copying variables
 - Issue #24: Allow copying large variables in slices
 - Issue #25: Centralize versioning in __init__.py file

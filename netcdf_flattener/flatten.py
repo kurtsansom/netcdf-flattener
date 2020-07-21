@@ -22,6 +22,7 @@ under the License.
 
 import collections
 import hashlib
+import logging
 import os
 import re
 import warnings
@@ -221,8 +222,6 @@ class _Flattener:
 
         :param output_ds: The dataset in which to store the flattened result.
         """
-        # print("Opening output file {}".format(os.path.abspath(output_file)))
-
         if output_ds == self.__input_file \
                 or output_ds.filepath() == self.__input_file.filepath() \
                 or output_ds.data_model != 'NETCDF4':
@@ -240,7 +239,7 @@ class _Flattener:
         self.__output_file.setncattr(self.__var_map_name, self.__var_map_value)
 
         # Browse flattened variables to rename references:
-        print("Browsing flattened variables to rename references in attributes:")
+        logging.info("Browsing flattened variables to rename references in attributes:")
         for var in self.__output_file.variables.values():
             self.adapt_references(var)
 
@@ -249,7 +248,7 @@ class _Flattener:
 
         :param input_group: group to flatten
         """
-        print("Browsing group " + input_group.path)
+        logging.info("Browsing group " + input_group.path)
         for attr_name in input_group.ncattrs():
             self.flatten_attribute(input_group, attr_name)
 
@@ -268,7 +267,7 @@ class _Flattener:
         :param input_group: group containing the attribute to flatten
         :param attr_name: name of the attribute to flatten
         """
-        print("   Copying attribute {} from group {} to root".format(attr_name, input_group.path))
+        logging.info("   Copying attribute {} from group {} to root".format(attr_name, input_group.path))
 
         # Create new name
         new_attr_name = self.generate_flattened_name(input_group, attr_name)
@@ -284,7 +283,7 @@ class _Flattener:
 
         :param dim: dimension to flatten
         """
-        print("   Copying dimension {} from group {} to root".format(dim.name, dim.group().path))
+        logging.info("   Copying dimension {} from group {} to root".format(dim.name, dim.group().path))
 
         # Create new name
         new_name = self.generate_flattened_name(dim.group(), dim.name)
@@ -303,7 +302,7 @@ class _Flattener:
 
         :param var: variable to flatten
         """
-        print("   Copying variable {} from group {} to root".format(var.name, var.group().path))
+        logging.info("   Copying variable {} from group {} to root".format(var.name, var.group().path))
 
         # Create new name
         new_name = self.generate_flattened_name(var.group(), var.name)
@@ -313,7 +312,7 @@ class _Flattener:
 
         # Write variable
         fullname = self.pathname(var.group(), var.name)
-        print("create variable {} from {}".format(new_name, fullname))
+        logging.info("create variable {} from {}".format(new_name, fullname))
 
         new_var = self.__output_file.createVariable(
             new_name,
@@ -390,7 +389,7 @@ class _Flattener:
         :param old_var: variable where data should be copied from
         :param copy_slice_shape: shape of the slice
         """
-        print("   copying data of {} in {} slices".format(old_var.name, copy_slice_shape))
+        logging.info("   copying data of {} in {} slices".format(old_var.name, copy_slice_shape))
 
         # Initial position vector
         pos = [0 for _ in range(len(copy_slice_shape))]
@@ -478,7 +477,7 @@ class _Flattener:
         """
         # If not found and accept standard name, assume standard name
         if absolute_ref is None and attr.accept_standard_names:
-            print("      coordinate reference to '{}' not resolved. Assumed to be a standard name.".format(orig_ref))
+            logging.info("      coordinate reference to '{}' not resolved. Assumed to be a standard name.".format(orig_ref))
             ref_type = "standard_name"
             absolute_ref = orig_ref
         # Else if not found, raise exception
@@ -486,14 +485,14 @@ class _Flattener:
             absolute_ref = self.handle_reference_error(orig_ref, orig_var.group().path)
         # If found:
         else:
-            print("      {} coordinate reference to {} '{}' resolved as '{}'"
+            logging.info("      {} coordinate reference to {} '{}' resolved as '{}'"
                   .format(method, ref_type, orig_ref, absolute_ref))
 
         # If variables refs are limited to coordinate variable, additional check
         if ref_type == "variable" and attr.limit_to_scalar_coordinates \
                 and (("coordinates" not in orig_var.ncattrs() or orig_ref not in orig_var.coordinates)
                      or self._Flattener__input_file[absolute_ref].ndim > 0):
-            print("      coordinate reference to '{}' is not a SCALAR COORDINATE variable. "
+            logging.info("      coordinate reference to '{}' is not a SCALAR COORDINATE variable. "
                   "Assumed to be a standard name.".format(orig_ref))
             absolute_ref = orig_ref
 
@@ -641,7 +640,7 @@ class _Flattener:
                 new_attr_value = generate_var_attr_str(adapted_parsed_attr)
                 var.setncattr(attr.name, new_attr_value)
 
-                print("   attribute '{}'  in '{}': references '{}' renamed as '{}'"
+                logging.info("   attribute '{}'  in '{}': references '{}' renamed as '{}'"
                       .format(attr.name, var.name, attr_value, new_attr_value))
 
     def adapt_name(self, resolved_ref, attr):
