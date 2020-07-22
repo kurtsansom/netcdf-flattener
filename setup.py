@@ -43,6 +43,6 @@ setuptools.setup(
          "Operating System :: OS Independent",
      ],
      install_requires=[
-          'netCDF4',
-      ],
- )
+         'netCDF4'
+     ],
+)

@@ -1,0 +1,8 @@
+include Changelog.md
+include README.md
+include requirements.txt
+include LICENSE
+include CONTRIBUTING.md
+include test/base_test.py
+include test/data/*.cdl
+prune netcdf_flattener.egg-info
