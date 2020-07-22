@@ -20,7 +20,20 @@ specific language governing permissions and limitations
 under the License.
 """
 
-__version__ = "1.0.1"
+from base_test import BaseTest
 
-from .flatten import flatten, ReferenceException, _Flattener, _AttributeProperties, parse_var_attr, \
-    generate_var_attr_str
+
+class Test(BaseTest):
+    def test_flatten(self):
+        """Test copying variables in slices and ensure data is the same regardless of slicing.
+
+        Flatten input file 'input5.cdl' and compare to reference 'reference5.cdl'.
+        """
+        # Inputs
+        input_name = "input5.cdl"
+        reference_name = "reference5.cdl"
+        output_name = "output5.nc"
+
+        self.flatten_and_compare(input_name, output_name, reference_name, copy_slices={"q2": None, "q3": (2, 3, 10)})
+
+

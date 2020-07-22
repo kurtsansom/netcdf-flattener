@@ -16,19 +16,69 @@ with warning, specify the `lax_mode` parameter:
 
     netcdf_flattener.flatten(input_dataset, output_dataset, lax_mode=True)
 
+For copying variables that would otherwise be larger than the available memory, the `copy_slices` parameter allows to 
+specify slices to be used when copying the variable. They are specified per variable in a dictionary. The slicing shape 
+is either `None` for using a default slice value, or a custom slicing shape in the form of a tuple of the same dimension 
+as the variable. If a variable from the Dataset is not contained in the dict, it will not be sliced and copied normally.
+
+Slice shapes should be small enough to fit in memory, but not too small larges loops on small slice can degrade 
+performances drastically. Typically, slices of size in the order of 10^6 to 10^8 are suitable. 
+
+    netcdf_flattener.flatten(input_dataset, output_dataset, copy_slices={"/grp1/var1": (1000,1000,500,), "/grp1/var3": None})
+
+### Limitations    
+
+When a CF coordinate variable in the input dataset is in a different
+group to its corresponding dimension, the same variable in the output
+flattened dataset will *no longer* be a CF coordinate variable, as its
+name will be prefixed with a different group identifier than its
+dimension. In such cases, it is up to the user to apply the [proximal
+and lateral search alogrithms](https://cfconventions.org/latest.html),
+in conjunction with the mappings defined in the
+``flattener_name_mapping_variables`` and
+``flattener_name_mapping_dimensions`` global attributes, to find which
+netCDF variables are *acting as* CF coordinate variables in the
+flattened dataset.
+
+For example, if an input dataset has dimension ``lat`` in the root
+group and coordinate variable ``lat(lat)`` in group ``/grp1``, then
+the flattened dataset will contain dimension ``lat`` and variable
+``grp1__lat(lat)``, both in its root group. In this case, the
+``flattener_name_mapping_variables`` global attribute of the flattened
+dataset will contain the mapping ``"grp1__lat: /grp1/lat"`` and the
+``flattener_name_mapping_dimensions`` global attribute will contain
+the mapping ``"lat: /lat"``.
+
+
 ## Deployment
+
+### From PyPi
+
+`netCDF-flattener` is in installable with `pip`, for example:
+
+    pip install netcdf-flattener
+
+### From source
 
 Install the build dependencies:
 
     python3 -m pip install --upgrade pip setuptools wheel
 
-To compile the wheel file, run the following command from the repository root:
+Download the source code from
+https://gitlab.eumetsat.int/open-source/netcdf-flattener and compile
+the wheel file, by running the following command from the repository root:
 
     python3 setup.py bdist_wheel
 
-Install the wheel file using PIP:
+Install the wheel file using `pip`:
 
     python3 -m pip install dist/netcdf_flattener-*.whl
+
+## Support
+
+Questions and issues should be raised at the issue tracker in the
+canonical source code repository:
+https://gitlab.eumetsat.int/open-source/netcdf-flattener
 
 ## Automated testing
 

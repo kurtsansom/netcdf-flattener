@@ -20,7 +20,18 @@ specific language governing permissions and limitations
 under the License.
 """
 
-__version__ = "1.0.1"
+from base_test import BaseTest
 
-from .flatten import flatten, ReferenceException, _Flattener, _AttributeProperties, parse_var_attr, \
-    generate_var_attr_str
+
+class Test(BaseTest):
+    def test_grid_mapping(self):
+        """Tests all forms of the grid_mapping attribute.
+
+        Flatten input file 'input6.cdl' and compare to reference 'reference6.cdl'.
+        """
+        # Inputs
+        input_name = "input6.cdl"
+        reference_name = "reference6.cdl"
+        output_name = "output6.nc"
+
+        self.flatten_and_compare(input_name, output_name, reference_name)

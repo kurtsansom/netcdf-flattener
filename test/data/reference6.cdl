@@ -1,0 +1,146 @@
+netcdf output6 {
+dimensions:
+	z = 3 ;
+	y = 4 ;
+	x = 5 ;
+variables:
+	double x(x) ;
+		x:standard_name = "projection_x_coordinate" ;
+		x:long_name = "Easting" ;
+		x:units = "m" ;
+	double y(y) ;
+		y:standard_name = "projection_y_coordinate" ;
+		y:long_name = "Northing" ;
+		y:units = "m" ;
+	double z(z) ;
+		z:standard_name = "height_above_reference_ellipsoid" ;
+		z:long_name = "height_above_osgb_newlyn_datum_masl" ;
+		z:units = "m" ;
+	double grp1__lat(y, x) ;
+		grp1__lat:standard_name = "latitude" ;
+		grp1__lat:units = "degrees_north" ;
+	double grp1__lon(y, x) ;
+		grp1__lon:standard_name = "longitude" ;
+		grp1__lon:units = "degrees_east" ;
+	float grp1__temp(z, y, x) ;
+		grp1__temp:standard_name = "air_temperature" ;
+		grp1__temp:units = "K" ;
+		grp1__temp:coordinates = "grp1__lat grp1__lon" ;
+		grp1__temp:grid_mapping = "grp1__crsOSGB: x y grp1__crsWGS84: grp1__lat grp1__lon" ;
+	float grp1__temp2(z, y, x) ;
+		grp1__temp2:standard_name = "air_temperature_2" ;
+		grp1__temp2:units = "K" ;
+		grp1__temp2:coordinates = "grp1__lat grp1__lon" ;
+		grp1__temp2:grid_mapping = "grp1__crsOSGB" ;
+	float grp1__pres(z, y, x) ;
+		grp1__pres:standard_name = "air_pressure" ;
+		grp1__pres:units = "Pa" ;
+		grp1__pres:coordinates = "grp1__lat grp1__lon" ;
+		grp1__pres:grid_mapping = "grp1__crsOSGB: x y grp1__crsWGS84: grp1__lat grp1__lon" ;
+	float grp1__pres2(z, y, x) ;
+		grp1__pres2:standard_name = "air_pressure_2" ;
+		grp1__pres2:units = "Pa" ;
+		grp1__pres2:coordinates = "grp1__lat grp1__lon" ;
+		grp1__pres2:grid_mapping = "grp1__crsOSGB" ;
+	int grp1__crsOSGB ;
+		grp1__crsOSGB:grid_mapping_name = "transverse_mercator" ;
+		grp1__crsOSGB:semi_major_axis = 6377563.396 ;
+		grp1__crsOSGB:inverse_flattening = 299.3249646 ;
+		grp1__crsOSGB:longitude_of_prime_meridian = 0. ;
+		grp1__crsOSGB:latitude_of_projection_origin = 49. ;
+		grp1__crsOSGB:longitude_of_central_meridian = -2. ;
+		grp1__crsOSGB:scale_factor_at_central_meridian = 0.9996012717 ;
+		grp1__crsOSGB:false_easting = 400000. ;
+		grp1__crsOSGB:false_northing = -100000. ;
+		grp1__crsOSGB:unit = "metre" ;
+	int grp1__crsWGS84 ;
+		grp1__crsWGS84:grid_mapping_name = "latitude_longitude" ;
+		grp1__crsWGS84:longitude_of_prime_meridian = 0. ;
+		grp1__crsWGS84:semi_major_axis = 6378137. ;
+		grp1__crsWGS84:inverse_flattening = 298.257223563 ;
+
+// global attributes:
+		:Conventions = "CF-1.8" ;
+		:__flattener_name_mapping_attributes = "Conventions: /Conventions" ;
+		string :__flattener_name_mapping_dimensions = "z: /z", "y: /y", "x: /x" ;
+		string :__flattener_name_mapping_variables = "x: /x", "y: /y", "z: /z", "grp1__lat: /grp1/lat", "grp1__lon: /grp1/lon", "grp1__temp: /grp1/temp", "grp1__temp2: /grp1/temp2", "grp1__pres: /grp1/pres", "grp1__pres2: /grp1/pres2", "grp1__crsOSGB: /grp1/crsOSGB", "grp1__crsWGS84: /grp1/crsWGS84" ;
+data:
+
+ x = 1, 1, 1, 1, 1 ;
+
+ y = 2, 2, 2, 2 ;
+
+ z = 3, 3, 3 ;
+
+ grp1__lat =
+  14, 65, 31, 35, 58,
+  24, 60, 69, 46, 56,
+  95, 14, 42, 62, 88,
+  81, 66, 49, 77, 23 ;
+
+ grp1__lon =
+  90, 78, 66, 17, 94,
+  57, 3, 57, 4, 68,
+  44, 98, 38, 10, 18,
+  77, 26, 80, 57, 69 ;
+
+ grp1__temp =
+  77, 96, 66, 58, 46,
+  93, 6, 82, 49, 56,
+  76, 79, 90, 61, 83,
+  82, 33, 61, 5, 33,
+  77, 24, 97, 15, 34,
+  6, 9, 63, 42, 39,
+  98, 65, 79, 97, 59,
+  3, 36, 76, 62, 92,
+  2, 52, 76, 31, 55,
+  74, 79, 87, 27, 72,
+  19, 82, 82, 2, 32,
+  56, 92, 15, 74, 13 ;
+
+ grp1__temp2 =
+  77, 96, 66, 58, 46,
+  93, 6, 82, 49, 56,
+  76, 79, 90, 61, 83,
+  82, 33, 61, 5, 33,
+  77, 24, 97, 15, 34,
+  6, 9, 63, 42, 39,
+  98, 65, 79, 97, 59,
+  3, 36, 76, 62, 92,
+  2, 52, 76, 31, 55,
+  74, 79, 87, 27, 72,
+  19, 82, 82, 2, 32,
+  56, 92, 15, 74, 13 ;
+
+ grp1__pres =
+  27, 33, 47, 82, 34,
+  57, 11, 58, 88, 80,
+  95, 66, 86, 59, 90,
+  49, 16, 83, 79, 54,
+  99, 61, 82, 23, 25,
+  84, 29, 45, 36, 27,
+  81, 19, 77, 47, 89,
+  7, 92, 13, 17, 15,
+  37, 85, 73, 83, 20,
+  29, 36, 35, 87, 60,
+  97, 9, 32, 73, 20,
+  16, 49, 40, 71, 85 ;
+
+ grp1__pres2 =
+  27, 33, 47, 82, 34,
+  57, 11, 58, 88, 80,
+  95, 66, 86, 59, 90,
+  49, 16, 83, 79, 54,
+  99, 61, 82, 23, 25,
+  84, 29, 45, 36, 27,
+  81, 19, 77, 47, 89,
+  7, 92, 13, 17, 15,
+  37, 85, 73, 83, 20,
+  29, 36, 35, 87, 60,
+  97, 9, 32, 73, 20,
+  16, 49, 40, 71, 85 ;
+
+ grp1__crsOSGB = 11 ;
+
+ grp1__crsWGS84 = 12 ;
+}

@@ -1,46 +1,76 @@
 netcdf output4 {
 dimensions:
-	group1\#lat = 5 ;
-	group1\#bounds2 = 2 ;
-	group1\#lon = 8 ;
+	y = 5 ;
+	x = 8 ;
+	group1__lat = 5 ;
+	group1__bounds2 = 2 ;
+	group1__lon = 8 ;
 variables:
-	double group1\#lat_bnds(group1\#lat, group1\#bounds2) ;
-	double group1\#lat(group1\#lat) ;
-		group1\#lat:units = "degrees_north" ;
-		group1\#lat:standard_name = "latitude" ;
-		group1\#lat:bounds = "group1#lat_bnds" ;
-	double group1\#lon_bnds(group1\#lon, group1\#bounds2) ;
-	double group1\#lon(group1\#lon) ;
-		group1\#lon:units = "degrees_east" ;
-		group1\#lon:standard_name = "longitude" ;
-		group1\#lon:bounds = "group1#lon_bnds" ;
-	double group1\#time ;
-		group1\#time:units = "days since 2018-12-01" ;
-		group1\#time:standard_name = "time" ;
-	double group1\#q(group1\#lat, group1\#lon) ;
-		group1\#q:project = "research" ;
-		group1\#q:standard_name = "specific_humidity" ;
-		group1\#q:units = "1" ;
-		group1\#q:coordinates = "group1#time" ;
-		group1\#q:cell_methods = "area: mean any_valid_name: mean group1#time: mean group1#bounds2: mean" ;
+	double t ;
+		t:units = "days since 2018-12-01" ;
+		t:standard_name = "time" ;
+	double group1__lat_bnds(group1__lat, group1__bounds2) ;
+	double group1__lat(group1__lat) ;
+		group1__lat:units = "degrees_north" ;
+		group1__lat:standard_name = "latitude" ;
+		group1__lat:bounds = "group1__lat_bnds" ;
+	double group1__lon_bnds(group1__lon, group1__bounds2) ;
+	double group1__lon(group1__lon) ;
+		group1__lon:units = "degrees_east" ;
+		group1__lon:standard_name = "longitude" ;
+		group1__lon:bounds = "group1__lon_bnds" ;
+	double group1__time ;
+		group1__time:units = "days since 2018-12-01" ;
+		group1__time:standard_name = "time" ;
+	double group1__q(group1__lat, group1__lon) ;
+		group1__q:project = "research" ;
+		group1__q:standard_name = "specific_humidity" ;
+		group1__q:units = "1" ;
+		group1__q:coordinates = "group1__time" ;
+		group1__q:cell_methods = "area: mean any_valid_name: mean group1__time: mean group1__bounds2: mean" ;
+	double group1__q2(group1__lat, group1__lon) ;
+		group1__q2:project = "research" ;
+		group1__q2:standard_name = "specific_humidity2" ;
+		group1__q2:units = "1" ;
+		group1__q2:cell_methods = "area: mean any_valid_name: mean time: mean group1__bounds2: mean" ;
+	double group1__q3(group1__lat, group1__lon) ;
+		group1__q3:project = "research" ;
+		group1__q3:standard_name = "specific_humidity3" ;
+		group1__q3:units = "1" ;
+		group1__q3:coordinates = "group1__time group1__lon_bnds" ;
+		group1__q3:cell_methods = "area: mean any_valid_name: mean group1__time: mean lon_bnds: mean" ;
+	double group1__y(y) ;
+		group1__y:units = "degrees_north" ;
+		group1__y:standard_name = "latitude" ;
+	double group1__x(x) ;
+		group1__x:units = "degrees_east" ;
+		group1__x:standard_name = "longitude" ;
+	double group1__tas(y, x) ;
+		group1__tas:project = "research" ;
+		group1__tas:standard_name = "specific_humidity" ;
+		group1__tas:units = "1" ;
+		group1__tas:coordinates = "t" ;
+		group1__tas:cell_methods = "y: x: mean (interval: 1 degree comment: comment 1 here) t: maximum (comment 2 here)" ;
 
 // global attributes:
 		:Conventions = "CF-1.8" ;
-		:flattener_name_mapping_attributes = "Conventions: /Conventions" ;
-		string :flattener_name_mapping_dimensions = "group1#lat: /group1/lat", "group1#bounds2: /group1/bounds2", "group1#lon: /group1/lon" ;
-		string :flattener_name_mapping_variables = "group1#lat_bnds: /group1/lat_bnds", "group1#lat: /group1/lat", "group1#lon_bnds: /group1/lon_bnds", "group1#lon: /group1/lon", "group1#time: /group1/time", "group1#q: /group1/q" ;
+		:__flattener_name_mapping_attributes = "Conventions: /Conventions" ;
+		string :__flattener_name_mapping_dimensions = "y: /y", "x: /x", "group1__lat: /group1/lat", "group1__bounds2: /group1/bounds2", "group1__lon: /group1/lon" ;
+		string :__flattener_name_mapping_variables = "t: /t", "group1__lat_bnds: /group1/lat_bnds", "group1__lat: /group1/lat", "group1__lon_bnds: /group1/lon_bnds", "group1__lon: /group1/lon", "group1__time: /group1/time", "group1__q: /group1/q", "group1__q2: /group1/q2", "group1__q3: /group1/q3", "group1__y: /group1/y", "group1__x: /group1/x", "group1__tas: /group1/tas" ;
 data:
 
- group1\#lat_bnds =
+ t = -10 ;
+
+ group1__lat_bnds =
   -90, -60,
   -60, -30,
   -30, 30,
   30, 60,
   60, 90 ;
 
- group1\#lat = -75, -45, 0, 45, 75 ;
+ group1__lat = -75, -45, 0, 45, 75 ;
 
- group1\#lon_bnds =
+ group1__lon_bnds =
   0, 45,
   45, 90,
   90, 135,
@@ -50,11 +80,36 @@ data:
   270, 315,
   315, 360 ;
 
- group1\#lon = 22.5, 67.5, 112.5, 157.5, 202.5, 247.5, 292.5, 337.5 ;
+ group1__lon = 22.5, 67.5, 112.5, 157.5, 202.5, 247.5, 292.5, 337.5 ;
 
- group1\#time = 31 ;
+ group1__time = 31 ;
 
- group1\#q =
+ group1__q =
+  0.007, 0.034, 0.003, 0.014, 0.018, 0.037, 0.024, 0.029,
+  0.023, 0.036, 0.045, 0.062, 0.046, 0.073, 0.006, 0.066,
+  0.11, 0.131, 0.124, 0.146, 0.087, 0.103, 0.057, 0.011,
+  0.029, 0.059, 0.039, 0.07, 0.058, 0.072, 0.009, 0.017,
+  0.006, 0.036, 0.019, 0.035, 0.018, 0.037, 0.034, 0.013 ;
+
+ group1__q2 =
+  0.007, 0.034, 0.003, 0.014, 0.018, 0.037, 0.024, 0.029,
+  0.023, 0.036, 0.045, 0.062, 0.046, 0.073, 0.006, 0.066,
+  0.11, 0.131, 0.124, 0.146, 0.087, 0.103, 0.057, 0.011,
+  0.029, 0.059, 0.039, 0.07, 0.058, 0.072, 0.009, 0.017,
+  0.006, 0.036, 0.019, 0.035, 0.018, 0.037, 0.034, 0.013 ;
+
+ group1__q3 =
+  0.007, 0.034, 0.003, 0.014, 0.018, 0.037, 0.024, 0.029,
+  0.023, 0.036, 0.045, 0.062, 0.046, 0.073, 0.006, 0.066,
+  0.11, 0.131, 0.124, 0.146, 0.087, 0.103, 0.057, 0.011,
+  0.029, 0.059, 0.039, 0.07, 0.058, 0.072, 0.009, 0.017,
+  0.006, 0.036, 0.019, 0.035, 0.018, 0.037, 0.034, 0.013 ;
+
+ group1__y = 2, 2, 2, 2, 2 ;
+
+ group1__x = 1, 1, 1, 1, 1, 1, 1, 1 ;
+
+ group1__tas =
   0.007, 0.034, 0.003, 0.014, 0.018, 0.037, 0.024, 0.029,
   0.023, 0.036, 0.045, 0.062, 0.046, 0.073, 0.006, 0.066,
   0.11, 0.131, 0.124, 0.146, 0.087, 0.103, 0.057, 0.011,
