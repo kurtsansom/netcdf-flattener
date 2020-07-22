@@ -1,6 +1,6 @@
 {
   "errors": [],
-  "generated_at": "2020-07-22T12:31:11Z",
+  "generated_at": "2020-07-22T12:52:47Z",
   "metrics": {
     "./build/lib/netcdf_flattener/__init__.py": {
       "CONFIDENCE.HIGH": 0.0,
@@ -23,7 +23,7 @@
       "SEVERITY.LOW": 0.0,
       "SEVERITY.MEDIUM": 2.0,
       "SEVERITY.UNDEFINED": 0.0,
-      "loc": 538,
+      "loc": 539,
       "nosec": 0
     },
     "./doc/conf.py": {
@@ -59,7 +59,7 @@
       "SEVERITY.LOW": 0.0,
       "SEVERITY.MEDIUM": 2.0,
       "SEVERITY.UNDEFINED": 0.0,
-      "loc": 539,
+      "loc": 540,
       "nosec": 0
     },
     "./setup.py": {
@@ -75,16 +75,16 @@
       "nosec": 0
     },
     "./test/base_test.py": {
-      "CONFIDENCE.HIGH": 7.0,
+      "CONFIDENCE.HIGH": 3.0,
       "CONFIDENCE.LOW": 0.0,
       "CONFIDENCE.MEDIUM": 0.0,
       "CONFIDENCE.UNDEFINED": 0.0,
       "SEVERITY.HIGH": 0.0,
-      "SEVERITY.LOW": 7.0,
+      "SEVERITY.LOW": 3.0,
       "SEVERITY.MEDIUM": 0.0,
       "SEVERITY.UNDEFINED": 0.0,
       "loc": 99,
-      "nosec": 0
+      "nosec": 2
     },
     "./test/test_cell_methods.py": {
       "CONFIDENCE.HIGH": 0.0,
@@ -99,15 +99,15 @@
       "nosec": 0
     },
     "./test/test_flatten.py": {
-      "CONFIDENCE.HIGH": 0.0,
+      "CONFIDENCE.HIGH": 3.0,
       "CONFIDENCE.LOW": 0.0,
       "CONFIDENCE.MEDIUM": 0.0,
       "CONFIDENCE.UNDEFINED": 0.0,
       "SEVERITY.HIGH": 0.0,
-      "SEVERITY.LOW": 0.0,
+      "SEVERITY.LOW": 3.0,
       "SEVERITY.MEDIUM": 0.0,
       "SEVERITY.UNDEFINED": 0.0,
-      "loc": 28,
+      "loc": 81,
       "nosec": 0
     },
     "./test/test_grid_mapping.py": {
@@ -159,50 +159,22 @@
       "nosec": 0
     },
     "_totals": {
-      "CONFIDENCE.HIGH": 11.0,
+      "CONFIDENCE.HIGH": 10.0,
       "CONFIDENCE.LOW": 0.0,
       "CONFIDENCE.MEDIUM": 0.0,
       "CONFIDENCE.UNDEFINED": 0.0,
       "SEVERITY.HIGH": 0.0,
-      "SEVERITY.LOW": 7.0,
+      "SEVERITY.LOW": 6.0,
       "SEVERITY.MEDIUM": 4.0,
       "SEVERITY.UNDEFINED": 0.0,
-      "loc": 1474,
-      "nosec": 0
+      "loc": 1529,
+      "nosec": 2
     }
   },
   "results": [
     {
-      "code": "738             if len(new_name) >= self.__max_name_len:\n739                 group_hash = hashlib.sha1(input_group.path.encode(\"UTF-8\")).hexdigest()\n740                 new_name = group_hash + self.__new_separator + orig_name\n",
-      "filename": "./build/lib/netcdf_flattener/flatten.py",
-      "issue_confidence": "HIGH",
-      "issue_severity": "MEDIUM",
-      "issue_text": "Use of insecure MD2, MD4, MD5, or SHA1 hash function.",
-      "line_number": 739,
-      "line_range": [
-        739
-      ],
-      "more_info": "https://bandit.readthedocs.io/en/latest/blacklists/blacklist_calls.html#b303-md5",
-      "test_id": "B303",
-      "test_name": "blacklist"
-    },
-    {
-      "code": "743                 if len(new_name) >= self.__max_name_len:\n744                     new_name = hashlib.sha1(full_name.encode(\"UTF-8\")).hexdigest()\n745         return new_name\n",
-      "filename": "./build/lib/netcdf_flattener/flatten.py",
-      "issue_confidence": "HIGH",
-      "issue_severity": "MEDIUM",
-      "issue_text": "Use of insecure MD2, MD4, MD5, or SHA1 hash function.",
-      "line_number": 744,
-      "line_range": [
-        744
-      ],
-      "more_info": "https://bandit.readthedocs.io/en/latest/blacklists/blacklist_calls.html#b303-md5",
-      "test_id": "B303",
-      "test_name": "blacklist"
-    },
-    {
       "code": "737             if len(new_name) >= self.__max_name_len:\n738                 group_hash = hashlib.sha1(input_group.path.encode(\"UTF-8\")).hexdigest()\n739                 new_name = group_hash + self.__new_separator + orig_name\n",
-      "filename": "./netcdf_flattener/flatten.py",
+      "filename": "./build/lib/netcdf_flattener/flatten.py",
       "issue_confidence": "HIGH",
       "issue_severity": "MEDIUM",
       "issue_text": "Use of insecure MD2, MD4, MD5, or SHA1 hash function.",
@@ -216,13 +188,41 @@
     },
     {
       "code": "742                 if len(new_name) >= self.__max_name_len:\n743                     new_name = hashlib.sha1(full_name.encode(\"UTF-8\")).hexdigest()\n744         return new_name\n",
-      "filename": "./netcdf_flattener/flatten.py",
+      "filename": "./build/lib/netcdf_flattener/flatten.py",
       "issue_confidence": "HIGH",
       "issue_severity": "MEDIUM",
       "issue_text": "Use of insecure MD2, MD4, MD5, or SHA1 hash function.",
       "line_number": 743,
       "line_range": [
         743
+      ],
+      "more_info": "https://bandit.readthedocs.io/en/latest/blacklists/blacklist_calls.html#b303-md5",
+      "test_id": "B303",
+      "test_name": "blacklist"
+    },
+    {
+      "code": "738             if len(new_name) >= self.__max_name_len:\n739                 group_hash = hashlib.sha1(input_group.path.encode(\"UTF-8\")).hexdigest()\n740                 new_name = group_hash + self.__new_separator + orig_name\n",
+      "filename": "./netcdf_flattener/flatten.py",
+      "issue_confidence": "HIGH",
+      "issue_severity": "MEDIUM",
+      "issue_text": "Use of insecure MD2, MD4, MD5, or SHA1 hash function.",
+      "line_number": 739,
+      "line_range": [
+        739
+      ],
+      "more_info": "https://bandit.readthedocs.io/en/latest/blacklists/blacklist_calls.html#b303-md5",
+      "test_id": "B303",
+      "test_name": "blacklist"
+    },
+    {
+      "code": "743                 if len(new_name) >= self.__max_name_len:\n744                     new_name = hashlib.sha1(full_name.encode(\"UTF-8\")).hexdigest()\n745         return new_name\n",
+      "filename": "./netcdf_flattener/flatten.py",
+      "issue_confidence": "HIGH",
+      "issue_severity": "MEDIUM",
+      "issue_text": "Use of insecure MD2, MD4, MD5, or SHA1 hash function.",
+      "line_number": 744,
+      "line_range": [
+        744
       ],
       "more_info": "https://bandit.readthedocs.io/en/latest/blacklists/blacklist_calls.html#b303-md5",
       "test_id": "B303",
@@ -243,34 +243,6 @@
       "test_name": "blacklist"
     },
     {
-      "code": "82         print(\"Generate NetCDF file '{}' from input CDL '{}'\".format(input_nc, input_cdl))\n83         subprocess.call([\"ncgen\", \"-o\", input_nc, input_cdl])\n84 \n",
-      "filename": "./test/base_test.py",
-      "issue_confidence": "HIGH",
-      "issue_severity": "LOW",
-      "issue_text": "Starting a process with a partial executable path",
-      "line_number": 83,
-      "line_range": [
-        83
-      ],
-      "more_info": "https://bandit.readthedocs.io/en/latest/plugins/b607_start_process_with_partial_path.html",
-      "test_id": "B607",
-      "test_name": "start_process_with_partial_path"
-    },
-    {
-      "code": "82         print(\"Generate NetCDF file '{}' from input CDL '{}'\".format(input_nc, input_cdl))\n83         subprocess.call([\"ncgen\", \"-o\", input_nc, input_cdl])\n84 \n",
-      "filename": "./test/base_test.py",
-      "issue_confidence": "HIGH",
-      "issue_severity": "LOW",
-      "issue_text": "subprocess call - check for execution of untrusted input.",
-      "line_number": 83,
-      "line_range": [
-        83
-      ],
-      "more_info": "https://bandit.readthedocs.io/en/latest/plugins/b603_subprocess_without_shell_equals_true.html",
-      "test_id": "B603",
-      "test_name": "subprocess_without_shell_equals_true"
-    },
-    {
       "code": "97             os.remove(input_nc)\n98             assert True\n99         # Expect flattener to succeed\n",
       "filename": "./test/base_test.py",
       "issue_confidence": "HIGH",
@@ -285,35 +257,7 @@
       "test_name": "assert_used"
     },
     {
-      "code": "108             print(\"Read content of flattened netcdf file '{}' in CDL (ncdump)\".format(output_nc))\n109             dumped_text = subprocess.check_output([\"ncdump\", output_nc]).decode(\"utf-8\")\n110 \n",
-      "filename": "./test/base_test.py",
-      "issue_confidence": "HIGH",
-      "issue_severity": "LOW",
-      "issue_text": "Starting a process with a partial executable path",
-      "line_number": 109,
-      "line_range": [
-        109
-      ],
-      "more_info": "https://bandit.readthedocs.io/en/latest/plugins/b607_start_process_with_partial_path.html",
-      "test_id": "B607",
-      "test_name": "start_process_with_partial_path"
-    },
-    {
-      "code": "108             print(\"Read content of flattened netcdf file '{}' in CDL (ncdump)\".format(output_nc))\n109             dumped_text = subprocess.check_output([\"ncdump\", output_nc]).decode(\"utf-8\")\n110 \n",
-      "filename": "./test/base_test.py",
-      "issue_confidence": "HIGH",
-      "issue_severity": "LOW",
-      "issue_text": "subprocess call - check for execution of untrusted input.",
-      "line_number": 109,
-      "line_range": [
-        109
-      ],
-      "more_info": "https://bandit.readthedocs.io/en/latest/plugins/b603_subprocess_without_shell_equals_true.html",
-      "test_id": "B603",
-      "test_name": "subprocess_without_shell_equals_true"
-    },
-    {
-      "code": "132 \n133             assert test_result\n",
+      "code": "132                 \n133             assert test_result\n",
       "filename": "./test/base_test.py",
       "issue_confidence": "HIGH",
       "issue_severity": "LOW",
@@ -325,7 +269,21 @@
       "more_info": "https://bandit.readthedocs.io/en/latest/plugins/b101_assert_used.html",
       "test_id": "B101",
       "test_name": "assert_used"
-    }
+    },
+    {
+      "code": "22 \n23 import subprocess\n24 from pathlib import Path\n",
+      "filename": "./test/test_flatten.py",
+      "issue_confidence": "HIGH",
+      "issue_severity": "LOW",
+      "issue_text": "Consider possible security implications associated with subprocess module.",
+      "line_number": 23,
+      "line_range": [
+        23
+      ],
+      "more_info": "https://bandit.readthedocs.io/en/latest/blacklists/blacklist_imports.html#b404-import-subprocess",
+      "test_id": "B404",
+      "test_name": "blacklist"
+    },
     {
       "code": "81         print(\"Generate NetCDF file '{}' from input CDL '{}'\".format(input_nc, input_cdl))\n82         subprocess.call([\"ncgen\", \"-o\", input_nc, input_cdl])\n83 \n",
       "filename": "./test/test_flatten.py",
@@ -339,6 +297,20 @@
       "more_info": "https://bandit.readthedocs.io/en/latest/plugins/b607_start_process_with_partial_path.html",
       "test_id": "B607",
       "test_name": "start_process_with_partial_path"
-    }  
+    },
+    {
+      "code": "81         print(\"Generate NetCDF file '{}' from input CDL '{}'\".format(input_nc, input_cdl))\n82         subprocess.call([\"ncgen\", \"-o\", input_nc, input_cdl])\n83 \n",
+      "filename": "./test/test_flatten.py",
+      "issue_confidence": "HIGH",
+      "issue_severity": "LOW",
+      "issue_text": "subprocess call - check for execution of untrusted input.",
+      "line_number": 82,
+      "line_range": [
+        82
+      ],
+      "more_info": "https://bandit.readthedocs.io/en/latest/plugins/b603_subprocess_without_shell_equals_true.html",
+      "test_id": "B603",
+      "test_name": "subprocess_without_shell_equals_true"
+    }
   ]
 }

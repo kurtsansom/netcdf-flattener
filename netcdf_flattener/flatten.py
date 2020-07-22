@@ -43,6 +43,7 @@ def flatten(input_ds, output_ds, lax_mode=False, _copy_data=True, copy_slices=No
     :param _copy_data: if true (default), then all data arrays are copied from the input to the output dataset.
                        If false, then this does not happen.
                        Use this option *only* if the data arrays of the flattened dataset are never to be accessed.
+                       If false then consider setting the fill mode for the output netcd4 dataset to "off" for improved performance.
     :param copy_slices: dictionary containing variable_name: shape pairs, where variable_name is the path to the
         variable name in the original Dataset (for instance /group1/group2/my_variable), and shape is either None for
         using default slice value, or a custom slicing shap in the form of a tuple of the same dimension as the variable

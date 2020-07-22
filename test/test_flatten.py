@@ -47,7 +47,7 @@ def assert_expected_data(self, _copy_data, variable_in, variable_out):
             self.assertFalse(
                 (variable_in[...].data == variable_out[...].data).all()
             )
-            
+
 class Test(BaseTest):
     def test_flatten(self):
         """Global test of most functionalities.
@@ -100,7 +100,7 @@ class Test(BaseTest):
                 for child in children:
                     for key, variable_in in child.variables.items():
                         path = variable_in.group().path
-                        flat_key = '#'.join(path.split('/')[1:] + [key])
+                        flat_key = '__'.join(path.split('/')[1:] + [key])
                         variable_out = output_ds.variables[flat_key]
                         assert_expected_data(self, _copy_data,
                                              variable_in, variable_out)
