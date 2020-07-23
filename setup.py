@@ -20,12 +20,34 @@ specific language governing permissions and limitations
 under the License.
 """
 
+import os
+import re
 import setuptools
 
 with open("README.md", "r") as fh:
     long_description = fh.read()
 
-from netcdf_flattener import __version__
+
+def _read(fname):
+    '''Returns content of a file.
+
+    '''
+    fpath = os.path.dirname(__file__)
+    fpath = os.path.join(fpath, fname)
+    with open(fpath, 'r') as file_:
+        return file_.read()
+
+
+def _get_version():
+    '''Returns library version by inspecting __init__.py file.
+
+    '''
+    return re.search(r'^__version__\s*=\s*[\'"]([^\'"]*)[\'"]',
+                     _read("netcdf_flattener/__init__.py"),
+                     re.MULTILINE).group(1)
+
+
+__version__ = _get_version()
 
 setuptools.setup(
      name='netcdf-flattener',  
