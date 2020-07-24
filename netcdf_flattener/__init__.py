@@ -20,7 +20,7 @@ specific language governing permissions and limitations
 under the License.
 """
 
-__version__ = "1.0.1b7"
+__version__ = "1.2.0"
 
 from .flatten import flatten, ReferenceException, _Flattener, _AttributeProperties, parse_var_attr, \
     generate_var_attr_str

@@ -1,6 +1,9 @@
 # Release notes
 All notable changes to this project will be documented in this file.
 
+## 1.2.0
+- #32: Package for PyPI
+
 ## 1.1.0
 - #26: Use `logging.info` rather than `print`
 - Allow flattening files without copying variables
