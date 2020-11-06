@@ -1,6 +1,10 @@
 # Release notes
 All notable changes to this project will be documented in this file.
 
+## 1.2.1
+- Handle VLEN netcdf variables
+- Copy the variable attributes before the data
+
 ## 1.2.0
 - #32: Package for PyPI
 

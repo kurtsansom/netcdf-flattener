@@ -28,7 +28,7 @@ import re
 import warnings
 from enum import Enum
 
-from netCDF4 import Dataset
+from netCDF4 import Dataset, VLType
 
 
 def flatten(input_ds, output_ds, lax_mode=False, _copy_data=True, copy_slices=None):
@@ -329,11 +329,17 @@ class _Flattener:
             least_significant_digit=None,
             fill_value=None)
 
+        # Copy attributes before adding data
+        new_var.setncatts(var.__dict__)
+
         if self.__copy_data:
             # Find out slice method for variable and copy data
             if self.__copy_slices is None or fullname not in self.__copy_slices:
-                # Copy data as a whole
-                new_var[:] = var[:]
+                if (isinstance(new_var.datatype, VLType)):
+                  new_var[()] = var[:]
+                else:
+                    # Copy data as a whole
+                    new_var[:] = var[:]
             elif self.__copy_slices[fullname] is None:
                 # Copy with default slice size
                 copy_slice = tuple(self.__default_copy_slice_size // len(var.shape) for _ in range(len(var.shape)))
@@ -342,9 +348,6 @@ class _Flattener:
                 # Copy in slices
                 copy_slice = self.__copy_slices[fullname]
                 self.copy_var_by_slices(new_var, var, copy_slice)
-
-        # Copy attributes
-        new_var.setncatts(var.__dict__)
 
         # Store new name in dict for resolving references later
         self.__var_map[self.pathname(var.group(), var.name)] = new_name
